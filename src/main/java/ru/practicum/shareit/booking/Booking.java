@@ -9,10 +9,10 @@ import java.time.LocalDateTime;
 
 @Data
 public class Booking {
-    private final int id;   // уникальный идентификатор бронирования;
-    private LocalDateTime start; // дата и время начала бронирования;
-    private LocalDateTime end; // дата и время конца бронирования;
-    private Item item;  // вещь, которую пользователь бронирует;
-    private User booker; // пользователь, который осуществляет бронирование;
-    private BookingStatus status; // статус бронирования.
+    private final int id;
+    private LocalDateTime start;
+    private LocalDateTime end;
+    private Item item;
+    private User booker;
+    private BookingStatus status;
 }
