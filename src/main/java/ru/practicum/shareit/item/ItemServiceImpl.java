@@ -98,7 +98,7 @@ public class ItemServiceImpl implements ItemService {
         }
     }
 
-    private boolean booleanUserExists(Integer userId){
+    private boolean booleanUserExists(Integer userId) {
         return userStorage.getByIdOrNull(userId) != null;
     }
 
