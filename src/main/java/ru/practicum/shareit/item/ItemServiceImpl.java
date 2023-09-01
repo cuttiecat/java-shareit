@@ -56,7 +56,7 @@ public class ItemServiceImpl implements ItemService {
         );
         if (bookings.isEmpty() || bookings.get(0).getStartDate().isAfter(LocalDateTime.now())) {
             throw new InvalidRequestParamsException(
-                    String.format("пользователь %d еще не брал вещь %d в аренду", userId, itemId)
+                    String.format("Пользователь %d еще не брал вещь %d в аренду", userId, itemId)
             );
         }
         Comment comment = new Comment();
@@ -148,7 +148,7 @@ public class ItemServiceImpl implements ItemService {
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new EntryNotFoundException(
-                                String.format("вещь с id = %d не найдена", itemId)
+                                String.format("Вещь с id = %d не найдена", itemId)
                         )
                 );
     }
@@ -156,14 +156,14 @@ public class ItemServiceImpl implements ItemService {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new EntryNotFoundException(
-                                String.format("пользователь с указанным id (%d) не существует", userId)
+                                String.format("Пользователь с указанным id (%d) не существует", userId)
                         )
                 );
     }
 
     private void throwIfUserCantEditItem(Long userId, Item item) {
         if (!item.getOwner().getId().equals(userId)) {
-            throw new AccessViolationException("пользователь не может изменить чужую вещь");
+            throw new AccessViolationException("Пользователь не может изменить чужую вещь");
         }
     }
 }
