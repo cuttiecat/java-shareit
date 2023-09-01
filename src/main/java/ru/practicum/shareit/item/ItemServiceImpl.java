@@ -18,6 +18,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.UserRepository;
+
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -51,12 +52,12 @@ public class ItemServiceImpl implements ItemService {
     public CommentDto createCommentForItem(Long userId, Long itemId, @Valid CommentDto commentDto) {
         User user = getUserOrThrow(userId);
         Item item = getItemOrThrow(itemId);
-        List<Booking> bookings = bookingRepository.findByBookerIdAndItemId(
+        List<Booking> bookings = bookingRepository.findByBooker_IdAndItem_Id(
                 userId, itemId, Sort.by(Sort.Direction.ASC, "startDate")
         );
         if (bookings.isEmpty() || bookings.get(0).getStartDate().isAfter(LocalDateTime.now())) {
             throw new InvalidRequestParamsException(
-                    String.format("Пользователь %d еще не брал вещь %d в аренду", userId, itemId)
+                    String.format("пользователь %d еще не брал вещь %d в аренду", userId, itemId)
             );
         }
         Comment comment = new Comment();
@@ -105,7 +106,7 @@ public class ItemServiceImpl implements ItemService {
         if (item.getOwner().getId().equals(userId)) {
             return makeItemDtosWithBookingsAndComments(List.of(item)).get(0);
         } else {
-            List<Comment> commentsForItem = commentRepository.findByItemId(itemId);
+            List<Comment> commentsForItem = commentRepository.findByItem_Id(itemId);
             ItemDto itemDto = ItemMapper.toItemDto(item);
             itemDto.setComments(CommentMapper.toCommentDto(commentsForItem));
             return itemDto;
@@ -148,7 +149,7 @@ public class ItemServiceImpl implements ItemService {
     private Item getItemOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new EntryNotFoundException(
-                                String.format("Вещь с id = %d не найдена", itemId)
+                                String.format("вещь с id = %d не найдена", itemId)
                         )
                 );
     }
@@ -156,14 +157,14 @@ public class ItemServiceImpl implements ItemService {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new EntryNotFoundException(
-                                String.format("Пользователь с указанным id (%d) не существует", userId)
+                                String.format("пользователь с указанным id (%d) не существует", userId)
                         )
                 );
     }
 
     private void throwIfUserCantEditItem(Long userId, Item item) {
         if (!item.getOwner().getId().equals(userId)) {
-            throw new AccessViolationException("Пользователь не может изменить чужую вещь");
+            throw new AccessViolationException("пользователь не может изменить чужую вещь");
         }
     }
 }

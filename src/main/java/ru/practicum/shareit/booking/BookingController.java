@@ -4,6 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingInDto;
+import ru.practicum.shareit.booking.dto.BookingStateFilter;
+import ru.practicum.shareit.error.InvalidRequestParamsException;
+
 import java.util.List;
 
 @RestController
@@ -34,7 +37,13 @@ public class BookingController {
             @RequestHeader(value = "X-Sharer-User-Id") Long userId,
             @RequestParam(value = "state", defaultValue = "ALL") String state
     ) {
-        return bookingService.getUserBookings(userId, state);
+        return bookingService.getUserBookings(
+                userId, BookingStateFilter.fromString(state).orElseThrow(
+                        () -> new InvalidRequestParamsException(
+                                String.format("Unknown state: %s", state)
+                        )
+                )
+        );
     }
 
     @GetMapping(value = "/owner")
@@ -42,7 +51,13 @@ public class BookingController {
             @RequestHeader(value = "X-Sharer-User-Id") Long userId,
             @RequestParam(value = "state", defaultValue = "ALL") String state
     ) {
-        return bookingService.getOwnerBookings(userId, state);
+        return bookingService.getOwnerBookings(
+                userId, BookingStateFilter.fromString(state).orElseThrow(
+                        () -> new InvalidRequestParamsException(
+                                String.format("Unknown state: %s", state)
+                        )
+                )
+        );
     }
 
     @PatchMapping(value = "/{bookingId}")

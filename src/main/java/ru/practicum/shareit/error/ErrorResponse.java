@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 public class ErrorResponse {
-    @JsonProperty("Ошибка")
+    @JsonProperty("error")
     private final String message;
 }
