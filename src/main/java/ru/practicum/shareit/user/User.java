@@ -11,9 +11,9 @@ import javax.validation.constraints.NotNull;
 @Builder
 public class User {
     private int id; // уникальный идентификатор пользователя;
-    @NotBlank(message = "Логин не может быть пустым")
+    @NotBlank(message = "логин не может быть пустым")
     private String name; // имя или логин пользователя;
-    @NotNull(message = "Email должен быть указан")
+    @NotNull(message = "email должен быть задан")
     @Email
     private String email; // адрес электронной почты
 }
