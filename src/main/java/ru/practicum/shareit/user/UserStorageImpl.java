@@ -26,7 +26,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public User getByIdOrNull(int id) {
+    public User getById(int id) {
         return users.get(id);
     }
 
