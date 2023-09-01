@@ -10,7 +10,7 @@ public interface UserStorage {
      */
     User add(User user);
 
-    User getByIdOrNull(int id);
+    User getById(int id);
 
     User getByEmail(String email);
 

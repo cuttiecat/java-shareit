@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(Integer id) {
-        User user = userStorage.getByIdOrNull(id);
+        User user = userStorage.getById(id);
         if (user == null) {
             throw new EntryNotFoundException(
                     String.format("Пользователь с id = %d не найден", id)
@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(Integer id, User userDto) {
-        User userToUpdate = userStorage.getByIdOrNull(id);
+        User userToUpdate = userStorage.getById(id);
         if (userToUpdate == null) {
             throw new EntryNotFoundException(
                     String.format("Пользователь с id = %d не найден", id)

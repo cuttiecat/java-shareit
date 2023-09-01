@@ -91,15 +91,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void throwIfUserNotExists(Integer userId) {
-        if (booleanUserExist(userId)) {
+        if (userStorage.getById(userId) == null) {
             throw new EntryNotFoundException(
                     String.format("пользователь с указанным id (%d) не существует", userId)
             );
         }
-    }
-
-    private boolean booleanUserExist(Integer userId) {
-        return userStorage.getByIdOrNull(userId) != null;
     }
 
     private void throwIfUserCantEditItem(Integer userId, Item item) {
