@@ -81,7 +81,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Item getItemOrThrow(Integer itemId) {
-        Item item = itemStorage.getByIdOrNull(itemId);
+        Item item = itemStorage.getById(itemId);
         if (item == null) {
             throw new EntryNotFoundException(
                     String.format("вещь с id = %d не найдена", itemId)
@@ -91,11 +91,15 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void throwIfUserNotExists(Integer userId) {
-        if (userStorage.getByIdOrNull(userId) == null) {
+        if (BooleanUserExists(userId)) {
             throw new EntryNotFoundException(
                     String.format("пользователь с указанным id (%d) не существует", userId)
             );
         }
+    }
+
+    private boolean BooleanUserExists(Integer userId){
+        return userStorage.getByIdOrNull(userId) != null;
     }
 
     private void throwIfUserCantEditItem(Integer userId, Item item) {

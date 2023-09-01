@@ -12,7 +12,7 @@ public interface UserStorage {
 
     User getByIdOrNull(int id);
 
-    User getByEmailOrNull(String email);
+    User getByEmail(String email);
 
     List<User> getAll();
 

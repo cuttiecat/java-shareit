@@ -25,7 +25,7 @@ public class ItemStorageImpl implements ItemStorage {
     }
 
     @Override
-    public Item getByIdOrNull(int itemId) {
+    public Item getById(int itemId) {
         return items.get(itemId);
     }
 
@@ -38,7 +38,7 @@ public class ItemStorageImpl implements ItemStorage {
 
     @Override
     public List<Item> searchByName(String text) {
-        if (text.isBlank()) return Collections.emptyList();
+        if (text.isEmpty()) return Collections.emptyList();
         String lcText = text.toLowerCase();
         return items.values().stream()
                 .filter(

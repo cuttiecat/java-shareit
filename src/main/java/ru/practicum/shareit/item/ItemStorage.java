@@ -8,7 +8,7 @@ public interface ItemStorage {
 
     Item add(Item item);
 
-    Item getByIdOrNull(int itemId);
+    Item getById(int itemId);
 
     List<Item> getAllByOwnerId(int ownerId);
 

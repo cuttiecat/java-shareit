@@ -23,7 +23,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(@Valid User user) {
-        if (userStorage.getByEmailOrNull(user.getEmail()) != null) {
+        if (userStorage.getByEmail(user.getEmail()) != null) {
             throw new EntryAlreadyExistsException(
                     String.format("Пользователь с email %s уже существует", user.getEmail())
             );
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
         if (userDto.getEmail() != null) {
             checkEmail(userDto.getEmail());
-            User userWithEmail = userStorage.getByEmailOrNull(userDto.getEmail());
+            User userWithEmail = userStorage.getByEmail(userDto.getEmail());
             if (userWithEmail != null && userWithEmail.getId() != userToUpdate.getId()) {
                 throw new EntryAlreadyExistsException(
                         String.format("Email %s уже используется", userDto.getEmail())

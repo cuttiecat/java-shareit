@@ -31,7 +31,7 @@ public class UserStorageImpl implements UserStorage {
     }
 
     @Override
-    public User getByEmailOrNull(String email) {
+    public User getByEmail(String email) {
         List<User> result = users.values().stream()
                 .filter(user -> user.getEmail().equals(email))
                 .collect(Collectors.toList());
