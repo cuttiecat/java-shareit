@@ -15,7 +15,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     @Query(
             "from Booking booking " +
-            "where booking.booker.id = ?1 and booking.startDate < ?2 and booking.endDate > ?2")
+            "where booking.booker.id = :userId and booking.startDate < :now and booking.endDate > :now")
     List<Booking> findAllCurrentForBooker(Long userId, LocalDateTime now, Sort sort);
 
     List<Booking> findByBooker_IdAndStartDateIsAfter(Long bookerId, LocalDateTime date, Sort sort);
