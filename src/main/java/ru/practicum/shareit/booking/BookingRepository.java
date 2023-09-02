@@ -13,7 +13,7 @@ import java.util.List;
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByBooker_IdAndEndDateIsBefore(Long bookerId, LocalDateTime date, Sort sort);
 
-    @Query("select booking " +
+    @Query(
             "from Booking booking " +
             "where booking.booker.id = ?1 and booking.startDate < ?2 and booking.endDate > ?2")
     List<Booking> findAllCurrentForBooker(Long userId, LocalDateTime now, Sort sort);
@@ -26,7 +26,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findByItem_Owner_IdAndEndDateIsBefore(Long userId, LocalDateTime date, Sort sort);
 
-    @Query("select booking " +
+    @Query(
             "from Booking booking " +
             "where booking.item.owner.id = ?1 and booking.startDate < ?2 and booking.endDate > ?2")
     List<Booking> findAllCurrentForOwner(Long userId, LocalDateTime date, Sort sort);
@@ -38,7 +38,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByItem_Owner_Id(Long userId, Sort sort);
 
     @Query(
-            "select booking " +
             "from Booking booking " +
             "where booking.item in ?1 and booking.startDate > ?2 and booking.status = 'APPROVED' " +
             "order by booking.item.id DESC, booking.startDate ASC"
@@ -46,7 +45,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findNextBookingsFor(List<Item> items, LocalDateTime date);
 
     @Query(
-            "select booking " +
             "from Booking booking " +
             "where booking.item in ?1 and booking.startDate < ?2 and booking.status = 'APPROVED'" +
             "order by booking.item.id DESC, booking.startDate DESC"
