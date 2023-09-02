@@ -12,10 +12,8 @@ import java.util.List;
 public interface BookingService {
     BookingDto getBookingById(Long userId, Long bookingId);
 
-    @Transactional
     BookingDto createBooking(Long userId, @Valid BookingInDto booking);
 
-    @Transactional
     BookingDto setBookingApproveStatus(Long userId, Long bookingId, Boolean approved);
 
     List<BookingDto> getUserBookings(Long userId, BookingStateFilter stateFilter);

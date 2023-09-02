@@ -8,12 +8,12 @@ import java.time.LocalDateTime;
 
 @Data
 public class BookingInDto {
-    @NotNull(message = "ID вещи должен быть задан")
+    @NotNull(message = "ID вещи должен быть указан")
     private Long itemId;
-    @NotNull(message = "Дата начала бронирования должна быть задана")
-    @NotInPast(message = "Дата начала бронирования не должна быть в прошлом")
+    @NotNull(message = "Дата начала бронирования должна быть указана")
+    @NotInPast(message = "Дата начала бронирования не должна быть раньше текущей даты")
     private LocalDateTime start;
-    @NotNull(message = "Дата окончания бронирования должна быть задана")
-    @NotInPast(message = "Дата окончания бронирования не должна быть в прошлом")
+    @NotNull(message = "Дата окончания бронирования должна быть указана")
+    @NotInPast(message = "Дата окончания бронирования не должна раньше текущей даты")
     private LocalDateTime end;
 }

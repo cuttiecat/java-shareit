@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS requests (
 CREATE TABLE IF NOT EXISTS items (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    description VARCHAR(200),
+    description VARCHAR(2000),
     is_available BOOLEAN,
     owner_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
     request_id BIGINT REFERENCES requests(id) ON DELETE SET NULL
