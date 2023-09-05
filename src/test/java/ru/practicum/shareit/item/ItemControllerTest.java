@@ -49,7 +49,7 @@ public class ItemControllerTest {
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         BookingItemDto bookingItemDto = new BookingItemDto(null, null, null);
-        receivedItemDto = new ItemDto(null, "Предмет №1", "Описание предмета №1", true,
+        receivedItemDto = new ItemDto(null, "Предмет 1", "Описание предмета 1", true,
                 List.of(), bookingItemDto, bookingItemDto, 1L);
         returnItemDto = receivedItemDto;
         returnItemDto.setId(1L);
@@ -66,15 +66,15 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Предмет №1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета №1")))
+                .andExpect(jsonPath("$.name", is("Предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
                 .andExpect(jsonPath("$.available", is(true)))
                 .andExpect(jsonPath("$.requestId", is(1)));
     }
 
     @Test
     void shouldUpdateItem() throws Exception {
-        returnItemDto.setName("Новый предмет №1");
+        returnItemDto.setName("Новый предмет 1");
         when(itemService.updateItem(1L, returnItemDto, 1L)).thenReturn(returnItemDto);
         mvc.perform(patch("/items/1")
                         .content(mapper.writeValueAsString(returnItemDto))
@@ -84,8 +84,8 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Новый предмет №1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета №1")))
+                .andExpect(jsonPath("$.name", is("Новый предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
                 .andExpect(jsonPath("$.available", is(true)))
                 .andExpect(jsonPath("$.requestId", is(1)));
     }
@@ -110,8 +110,8 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Предмет №1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета №1")))
+                .andExpect(jsonPath("$.name", is("Предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
                 .andExpect(jsonPath("$.available", is(true)))
                 .andExpect(jsonPath("$.requestId", is(1)));
     }
@@ -119,15 +119,15 @@ public class ItemControllerTest {
     @Test
     void shouldGetItemsByName() throws Exception {
         when(itemService.getItemsByName("редмет", 0, 2)).thenReturn(List.of(returnItemDto));
-        mvc.perform(get("/items/search?from=0&size=2&text={text}", "Предмет")
+        mvc.perform(get("/items/search?from=0&size=2&text={text}", "редмет")
                         .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет №1")))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета №1")))
+                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
                 .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
                 .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
     }
@@ -142,8 +142,8 @@ public class ItemControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет №1")))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета №1")))
+                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
                 .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
                 .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
     }
@@ -151,7 +151,7 @@ public class ItemControllerTest {
     @Test
     void shouldAddCommentToItem() throws Exception {
         CommentDto receivedCommentDto =
-                new CommentDto(null, "Комментарий к предмету №1", "Пользователь №1", LocalDateTime.now());
+                new CommentDto(null, "Коммент к предмету 1", "Пользователь 1", LocalDateTime.now());
         receivedCommentDto.setId(1L);
         when(itemService.addCommentToItem(1L, receivedCommentDto, 2L)).thenReturn(receivedCommentDto);
         mvc.perform(post("/items/1/comment")
@@ -163,6 +163,6 @@ public class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.created", is(notNullValue())))
-                .andExpect(jsonPath("$.text", is("Комментарий к предмету №1")));
+                .andExpect(jsonPath("$.text", is("Коммент к предмету 1")));
     }
 }

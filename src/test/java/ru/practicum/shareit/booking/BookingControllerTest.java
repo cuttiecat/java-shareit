@@ -55,7 +55,7 @@ public class BookingControllerTest {
         LocalDateTime end = start.plusHours(1);
         receivedBookingDto = new ReceivedBookingDto(1L, start, end);
         returnBookingDto = new ReturnBookingDto(1L, start, end, BookingStatus.WAITING,
-                new UserDtoBooking(1L, "Пользователь №1"), new ItemBookingDto(1L, "Предмет №1"));
+                new UserDtoBooking(1L, "Пользователь 1"), new ItemBookingDto(1L, "Предмет 1"));
     }
 
     @Test

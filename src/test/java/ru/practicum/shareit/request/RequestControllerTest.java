@@ -47,8 +47,8 @@ public class RequestControllerTest {
                 .build();
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        receivedRequestDto = new ReceivedRequestDto("Описание запроса №1");
-        returnRequestDto = new ReturnRequestDto(1L, "Описание запроса №1", List.of(), LocalDateTime.now());
+        receivedRequestDto = new ReceivedRequestDto("Описание запроса 1");
+        returnRequestDto = new ReturnRequestDto(1L, "Описание запроса 1", List.of(), LocalDateTime.now());
     }
 
     @Test
@@ -62,7 +62,7 @@ public class RequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.description", is("Описание запроса №1")))
+                .andExpect(jsonPath("$.description", is("Описание запроса 1")))
                 .andExpect(jsonPath("$.created", is(notNullValue())));
     }
 
@@ -76,7 +76,7 @@ public class RequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса №1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса 1")))
                 .andExpect(jsonPath("$[*].created", containsInAnyOrder(notNullValue())));
     }
 
@@ -90,7 +90,7 @@ public class RequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.description", is("Описание запроса №1")))
+                .andExpect(jsonPath("$.description", is("Описание запроса 1")))
                 .andExpect(jsonPath("$.created", is(notNullValue())));
     }
 
@@ -104,7 +104,7 @@ public class RequestControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса №1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса 1")))
                 .andExpect(jsonPath("$[*].created", containsInAnyOrder(notNullValue())));
     }
 }

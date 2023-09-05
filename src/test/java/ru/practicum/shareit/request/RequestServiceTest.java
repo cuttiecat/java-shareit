@@ -43,21 +43,21 @@ public class RequestServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(1L, "Пользователь №1", "email1@mail.ru");
-        request = new Request(1L, "Описание запроса №1", user, LocalDateTime.now());
-        User owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        item = new Item(1L, "Предмет №1", "Описание предмета №1", true, owner, request);
+        user = new User(1L, "Пользователь 1", "email1@mail.ru");
+        request = new Request(1L, "Описание запроса 1", user, LocalDateTime.now());
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        item = new Item(1L, "Предмет 1", "Описание предмета 1", true, owner, request);
     }
 
     @Test
     void shouldAddRequest() {
-        ReceivedRequestDto receivedRequestDto = new ReceivedRequestDto("Описание запроса м1");
+        ReceivedRequestDto receivedRequestDto = new ReceivedRequestDto("Описание запроса 1");
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(requestRepository.save(any())).thenReturn(request);
         ReturnRequestDto returnRequestDto = requestService.addRequest(receivedRequestDto, 1L);
         assertNotNull(returnRequestDto);
         assertEquals(1L, returnRequestDto.getId());
-        assertEquals("Описание запроса №1", returnRequestDto.getDescription());
+        assertEquals("Описание запроса 1", returnRequestDto.getDescription());
         verify(requestRepository, times(1)).save(any());
     }
 
@@ -71,7 +71,7 @@ public class RequestServiceTest {
         List<ReturnRequestDto> requestDtoList = requestService.getOthersRequests(0, 20, 1L);
         assertEquals(1, requestDtoList.size());
         assertEquals(1L, requestDtoList.get(0).getId());
-        assertEquals("Описание запроса №1", requestDtoList.get(0).getDescription());
+        assertEquals("Описание запроса 1", requestDtoList.get(0).getDescription());
         verify(itemRepository, times(1)).findAllByRequestsId(any());
         verify(userRepository, times(1)).findById(anyLong());
         verify(requestRepository, times(1)).findAllForUser(anyLong(), any());
@@ -85,7 +85,7 @@ public class RequestServiceTest {
         ReturnRequestDto returnRequestDto = requestService.getRequest(1L, 2L);
         assertNotNull(returnRequestDto);
         assertEquals(1L, returnRequestDto.getId());
-        assertEquals("Описание запроса №1", returnRequestDto.getDescription());
+        assertEquals("Описание запроса 1", returnRequestDto.getDescription());
         verify(userRepository, times(1)).findById(anyLong());
         verify(requestRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).findAllByRequestsId(any());
@@ -99,7 +99,7 @@ public class RequestServiceTest {
         List<ReturnRequestDto> requestDtoList = requestService.getUserRequests(1L);
         assertEquals(1, requestDtoList.size());
         assertEquals(1L, requestDtoList.get(0).getId());
-        assertEquals("Описание запроса №1", requestDtoList.get(0).getDescription());
+        assertEquals("Описание запроса 1", requestDtoList.get(0).getDescription());
         verify(userRepository, times(1)).findById(anyLong());
         verify(requestRepository, times(1)).findRequestsByRequestorId(anyLong());
         verify(itemRepository, times(1)).findAllByRequestsId(any());

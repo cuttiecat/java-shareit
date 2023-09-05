@@ -46,9 +46,9 @@ public class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(1L, "Пользователь №1", "email1@mail.ru");
-        User owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        item = new Item(1L, "Предмет №1", "Описание предмета №1", true, owner, null);
+        user = new User(1L, "Пользователь 1", "email1@mail.ru");
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        item = new Item(1L, "Предмет 1", "Описание предмета 1", true, owner, null);
         start = LocalDateTime.now().plusDays(1);
         end = start.plusDays(1);
         booking = new Booking(1L, start, end, item, user, BookingStatus.WAITING);
@@ -63,8 +63,8 @@ public class BookingServiceTest {
         ReturnBookingDto returnBookingDto = bookingService.addBooking(receivedBookingDto, 1L);
         assertNotNull(returnBookingDto);
         assertEquals(1L, returnBookingDto.getId());
-        assertEquals("Пользователь №1", returnBookingDto.getBooker().getName());
-        assertEquals("Предмет №1", returnBookingDto.getItem().getName());
+        assertEquals("Пользователь 1", returnBookingDto.getBooker().getName());
+        assertEquals("Предмет 1", returnBookingDto.getItem().getName());
         verify(bookingRepository, times(1)).save(any());
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).findById(anyLong());
@@ -77,8 +77,8 @@ public class BookingServiceTest {
         ReturnBookingDto returnBookingDto = bookingService.setBookingStatus(1L, true, 2L);
         assertNotNull(returnBookingDto);
         assertEquals(1L, returnBookingDto.getId());
-        assertEquals("Пользователь №1", returnBookingDto.getBooker().getName());
-        assertEquals("Предмет №1", returnBookingDto.getItem().getName());
+        assertEquals("Пользователь 1", returnBookingDto.getBooker().getName());
+        assertEquals("Предмет 1", returnBookingDto.getItem().getName());
         verify(bookingRepository, times(1)).save(any());
         verify(bookingRepository, times(1)).findById(anyLong());
     }
@@ -90,8 +90,8 @@ public class BookingServiceTest {
         ReturnBookingDto returnBookingDto = bookingService.getBooking(1L, 1L);
         assertNotNull(returnBookingDto);
         assertEquals(1L, returnBookingDto.getId());
-        assertEquals("Пользователь №1", returnBookingDto.getBooker().getName());
-        assertEquals("Предмет №1", returnBookingDto.getItem().getName());
+        assertEquals("Пользователь 1", returnBookingDto.getBooker().getName());
+        assertEquals("Предмет 1", returnBookingDto.getItem().getName());
         verify(bookingRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).findById(anyLong());
     }
@@ -106,43 +106,43 @@ public class BookingServiceTest {
                 .getBookerBookings(BookingState.CURRENT, 0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllPastByBookerId(anyLong(), any(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getBookerBookings(BookingState.PAST,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllFutureByBookerId(anyLong(), any(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getBookerBookings(BookingState.FUTURE,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllWaitingByBookerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getBookerBookings(BookingState.WAITING,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllRejectedByBookerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getBookerBookings(BookingState.REJECTED,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllByBookerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getBookerBookings(BookingState.ALL,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         verify(userRepository, times(6)).findById(anyLong());
         verify(bookingRepository, times(1)).findAllCurrentByBookerId(anyLong(), any(), any());
@@ -163,43 +163,43 @@ public class BookingServiceTest {
                 .getOwnerBookings(BookingState.CURRENT, 0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllPastByOwnerId(anyLong(), any(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getOwnerBookings(BookingState.PAST,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllFutureByOwnerId(anyLong(), any(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getOwnerBookings(BookingState.FUTURE,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllWaitingByOwnerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getOwnerBookings(BookingState.WAITING,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllRejectedByOwnerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getOwnerBookings(BookingState.REJECTED,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         when(bookingRepository.findAllByOwnerId(anyLong(), any())).thenReturn(bookingPage);
         bookingDtoList = bookingService.getOwnerBookings(BookingState.ALL,  0, 18, 1L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
 
         verify(userRepository, times(6)).findById(anyLong());
         verify(bookingRepository, times(1)).findAllCurrentByOwnerId(anyLong(), any(), any());

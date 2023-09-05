@@ -35,7 +35,7 @@ public class RequestServiceImpl implements RequestService {
     private static final String SERVICE_LOG = "Сервис запросов получил запрос на {}{}";
 
     public ReturnRequestDto addRequest(ReceivedRequestDto requestDto, Long requestorId) {
-        log.info(SERVICE_LOG, "Добавление запроса: ", requestDto);
+        log.info(SERVICE_LOG, "добавление запроса: ", requestDto);
         User requestor = checkUserExist(requestorId);
         return RequestMapper.toRequestDto(
                 requestRepository.save(RequestMapper.toRequest(requestDto, requestor, LocalDateTime.now())),
@@ -44,7 +44,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Transactional(readOnly = true)
     public List<ReturnRequestDto> getOthersRequests(Integer from, Integer size, Long userId) {
-        log.info(SERVICE_LOG, "Получение запросов постранично начиная с: ", from);
+        log.info(SERVICE_LOG, "получение запросов постранично начиная с: ", from);
         checkUserExist(userId);
         List<Request> requestList = requestRepository.findAllForUser(
                 userId,
@@ -54,7 +54,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Transactional(readOnly = true)
     public ReturnRequestDto getRequest(Long requestId, Long userId) {
-        log.info(SERVICE_LOG, "Получение запроса с id: ", requestId);
+        log.info(SERVICE_LOG, "получение запроса с id: ", requestId);
         checkUserExist(userId);
         return RequestMapper.toRequestDto(
                 requestRepository.findById(requestId).orElseThrow(
@@ -66,7 +66,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Transactional(readOnly = true)
     public List<ReturnRequestDto> getUserRequests(Long userId) {
-        log.info(SERVICE_LOG, "Получение всех запросов пользователя: ", userId);
+        log.info(SERVICE_LOG, "получение всех запросов пользователя: ", userId);
         checkUserExist(userId);
         List<Request> requestList = requestRepository.findRequestsByRequestorId(userId);
         return getUniqueOperations(requestList);

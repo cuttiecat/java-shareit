@@ -55,10 +55,10 @@ public class ItemServiceTest {
 
     @BeforeEach
     void setUp() {
-        User user = new User(1L, "Пользователь №1", "email1@mail.ru");
-        request = new Request(1L, "Описание запроса №1", user, LocalDateTime.now());
-        owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        item = new Item(1L, "Предмет №1", "Описание предмета №1", true, owner, request);
+        User user = new User(1L, "Пользователь 1", "email1@mail.ru");
+        request = new Request(1L, "Описание запроса 1", user, LocalDateTime.now());
+        owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        item = new Item(1L, "Предмет 1", "Описание предмета 1", true, owner, request);
     }
 
     @Test
@@ -69,8 +69,8 @@ public class ItemServiceTest {
         ItemDto itemDto = itemService.addItem(ItemMapper.toItemDto(item, List.of()), 2L);
         assertNotNull(itemDto);
         assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет №1", itemDto.getName());
-        assertEquals("Описание предмета №1", itemDto.getDescription());
+        assertEquals("Предмет 1", itemDto.getName());
+        assertEquals("Описание предмета 1", itemDto.getDescription());
         verify(userRepository, times(1)).findById(anyLong());
         verify(requestRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).save(any());
@@ -84,8 +84,8 @@ public class ItemServiceTest {
         ItemDto itemDto = itemService.updateItem(1L, ItemMapper.toItemDto(item, List.of()), 2L);
         assertNotNull(itemDto);
         assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет №1", itemDto.getName());
-        assertEquals("Описание предмета №1", itemDto.getDescription());
+        assertEquals("Предмет 1", itemDto.getName());
+        assertEquals("Описание предмета 1", itemDto.getDescription());
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(2)).findById(anyLong());
     }
@@ -109,8 +109,8 @@ public class ItemServiceTest {
         ItemDto itemDto = itemService.getItem(1L, 2L);
         assertNotNull(itemDto);
         assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет №1", itemDto.getName());
-        assertEquals("Описание предмета №1", itemDto.getDescription());
+        assertEquals("Предмет 1", itemDto.getName());
+        assertEquals("Описание предмета 1", itemDto.getDescription());
         assertEquals(1L, itemDto.getLastBooking().getId());
         assertEquals(2L, itemDto.getNextBooking().getId());
         verify(itemRepository, times(1)).findById(anyLong());
@@ -131,8 +131,8 @@ public class ItemServiceTest {
         List<ItemDto> itemDtoList = itemService.getItemsByOwner(2L, 0, 20);
         assertEquals(1, itemDtoList.size());
         assertEquals(1L, itemDtoList.get(0).getId());
-        assertEquals("Предмет №1", itemDtoList.get(0).getName());
-        assertEquals("Описание предмета №1", itemDtoList.get(0).getDescription());
+        assertEquals("Предмет 1", itemDtoList.get(0).getName());
+        assertEquals("Описание предмета 1", itemDtoList.get(0).getDescription());
 
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).findAllByOwnerId(anyLong(), any());
@@ -149,15 +149,15 @@ public class ItemServiceTest {
         List<ItemDto> itemDtoList = itemService.getItemsByName("Текст", 0, 20);
         assertEquals(1, itemDtoList.size());
         assertEquals(1L, itemDtoList.get(0).getId());
-        assertEquals("Предмет №1", itemDtoList.get(0).getName());
-        assertEquals("Описание предмета №1", itemDtoList.get(0).getDescription());
+        assertEquals("Предмет 1", itemDtoList.get(0).getName());
+        assertEquals("Описание предмета 1", itemDtoList.get(0).getDescription());
         verify(itemRepository, times(1)).findAllByText(anyString(), any());
     }
 
     @Test
     void shouldAddCommentToItem() {
         LocalDateTime localDateTime = LocalDateTime.now();
-        User user = new User(3L, "Пользователь №3", "email3@mail.ru");
+        User user = new User(3L, "Пользователь 3", "email3@mail.ru");
         Comment comment = new Comment(1L, "Текст комментария", item, user, localDateTime);
         when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
         when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
@@ -171,7 +171,7 @@ public class ItemServiceTest {
         assertNotNull(commentDto);
         assertEquals(1L, commentDto.getId());
         assertEquals("Текст комментария", commentDto.getText());
-        assertEquals("Пользователь №3", commentDto.getAuthorName());
+        assertEquals("Пользователь 3", commentDto.getAuthorName());
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRepository, times(1)).findById(anyLong());
         verify(bookingRepository, times(1)).findAllPastByBookerId(anyLong(), any(), any());
@@ -196,6 +196,6 @@ public class ItemServiceTest {
         when(bookingRepository.findAllPastByBookerId(anyLong(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(booking)));
         assertThrows(CommentBookerException.class, () -> itemService.addCommentToItem(
-                2L, new CommentDto(null, "Комментарий №1", null, null),2L));
+                2L, new CommentDto(null, "Комментарий 1", null, null),2L));
     }
 }

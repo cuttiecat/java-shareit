@@ -36,25 +36,25 @@ public class BookingRepositoryTest {
 
     @Test
     void shouldFindAllByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
         List<Booking> bookingList = bookingRepository.findAllByBookerId(1L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllCurrentByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
@@ -62,16 +62,16 @@ public class BookingRepositoryTest {
                 .findAllCurrentByBookerId(1L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllPastByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1), item, booker, BookingStatus.APPROVED));
@@ -79,16 +79,16 @@ public class BookingRepositoryTest {
                 .findAllPastByBookerId(1L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllFutureByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
@@ -96,64 +96,64 @@ public class BookingRepositoryTest {
                 .findAllFutureByBookerId(1L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllWaitingByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.WAITING));
         List<Booking> bookingList = bookingRepository.findAllWaitingByBookerId(1L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.WAITING, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllRejectedByBookerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.REJECTED));
         List<Booking> bookingList = bookingRepository.findAllRejectedByBookerId(1L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.REJECTED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
         List<Booking> bookingList = bookingRepository.findAllByOwnerId(2L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllCurrentByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
@@ -161,16 +161,16 @@ public class BookingRepositoryTest {
                 .findAllCurrentByOwnerId(2L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllPastByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1), item, booker, BookingStatus.APPROVED));
@@ -178,16 +178,16 @@ public class BookingRepositoryTest {
                 .findAllPastByOwnerId(2L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllFutureByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
@@ -195,48 +195,48 @@ public class BookingRepositoryTest {
                 .findAllFutureByOwnerId(2L, LocalDateTime.now(), PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.APPROVED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllWaitingByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.WAITING));
         List<Booking> bookingList = bookingRepository.findAllWaitingByOwnerId(2L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.WAITING, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindAllRejectedByOwnerId() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.REJECTED));
         List<Booking> bookingList = bookingRepository.findAllRejectedByOwnerId(2L, PAGEABLE).toList();
         assertEquals(1, bookingList.size());
         assertEquals(1L, bookingList.get(0).getId());
-        assertEquals("Предмет №1", bookingList.get(0).getItem().getName());
-        assertEquals("Пользователь №1", bookingList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingList.get(0).getBooker().getName());
         assertEquals(BookingStatus.REJECTED, bookingList.get(0).getStatus());
     }
 
     @Test
     void shouldFindNearPreviousBookings() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1), item, booker, BookingStatus.APPROVED));
@@ -249,9 +249,9 @@ public class BookingRepositoryTest {
 
     @Test
     void shouldFindNearNextBookings() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));
@@ -264,9 +264,9 @@ public class BookingRepositoryTest {
 
     @Test
     void shouldFindNearPreviousBooking() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1), item, booker, BookingStatus.APPROVED));
@@ -280,9 +280,9 @@ public class BookingRepositoryTest {
 
     @Test
     void shouldFindNearNextBooking() {
-        User booker = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        Item item = itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        Item item = itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null));
         bookingRepository.save(new Booking(1L, LocalDateTime.now().plusDays(1),
                 LocalDateTime.now().plusDays(2), item, booker, BookingStatus.APPROVED));

@@ -36,7 +36,7 @@ public class BookingServiceImpl implements BookingService {
     private static final String SERVICE_LOG = "Сервис бронирования получил запрос на {}{}";
 
     public ReturnBookingDto addBooking(ReceivedBookingDto bookingDto, Long userId) {
-        log.info(SERVICE_LOG, "Добавление бронирования: ", bookingDto);
+        log.info(SERVICE_LOG, "добавление бронирования: ", bookingDto);
         Item item = checkItemExist(bookingDto.getItemId());
         if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
             throw new BookingDateValidationException("Ошибка. Даты бронирования не могут содержать null");
@@ -56,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public ReturnBookingDto setBookingStatus(Long bookingId, Boolean status, Long ownerId) {
-        log.info(SERVICE_LOG, "Изменение статуса бронирования на: ", status);
+        log.info(SERVICE_LOG, "изменение статуса бронирования на: ", status);
         Booking booking = checkBookingExist(bookingId);
         checkUserIsOwner(ownerId, booking.getItem().getOwner().getId());
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
@@ -72,7 +72,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     public ReturnBookingDto getBooking(Long bookingId, Long userId) {
-        log.info(SERVICE_LOG, "Получение бронирования с id: ", bookingId);
+        log.info(SERVICE_LOG, "получение бронирования с id: ", bookingId);
         checkUserExist(userId);
         Booking booking = checkBookingExist(bookingId);
         if (!booking.getBooker().getId().equals(userId) && !booking.getItem().getOwner().getId().equals(userId)) {

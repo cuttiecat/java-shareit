@@ -29,12 +29,12 @@ public class UserServiceImpl implements UserService {
     private static final String SERVICE_LOG = "Сервис пользователей получил запрос на {}{}";
 
     public UserDto addUser(UserDto userDto) {
-        log.info(SERVICE_LOG, "Добавление пользователя: ", userDto);
+        log.info(SERVICE_LOG, "добавление пользователя: ", userDto);
         return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)), List.of());
     }
 
     public UserDto updateUser(Long userId, UserDto userDto) {
-        log.info(SERVICE_LOG, "Обновление пользователя c id: ", userId);
+        log.info(SERVICE_LOG, "обновление пользователя c id: ", userId);
         User currentUser = checkUserExist(userId);
         userDto.setId(userId);
         if (userDto.getName() == null) {
@@ -44,20 +44,20 @@ public class UserServiceImpl implements UserService {
             userDto.setEmail(currentUser.getEmail());
         }
         User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.save(user),
+        return UserMapper.toUserDto(userRepository.save(user), // Здесь не стал менять т.к. запрос всегда один
                 commentRepository.findAllByAuthorId(userId).stream()
                         .map(CommentMapper::toCommentDto)
                         .collect(Collectors.toList()));
     }
 
     public void deleteUser(Long userId) {
-        log.info(SERVICE_LOG, "Удаление пользователя с id: ", userId);
+        log.info(SERVICE_LOG, "удаление пользователя с id: ", userId);
         userRepository.deleteById(userId);
     }
 
     @Transactional(readOnly = true)
     public UserDto getUser(Long userId) {
-        log.info(SERVICE_LOG, "Получение пользователя с id: ", userId);
+        log.info(SERVICE_LOG, "получение пользователя с id: ", userId);
         User user = checkUserExist(userId);
         return UserMapper.toUserDto(user, commentRepository.findAllByAuthorId(userId).stream()
                 .map(CommentMapper::toCommentDto)
@@ -66,7 +66,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getUsers(Integer from, Integer size) {
-        log.info(SERVICE_LOG, "Получение всех пользователей", "");
+        log.info(SERVICE_LOG, "получение всех пользователей", "");
         Map<Long, List<Comment>> commentMap = commentRepository.findAll().stream()
                 .collect(Collectors.groupingBy(comment -> comment.getAuthor().getId()));
         return userRepository.findAll(ShareItPageable.checkPageable(from, size, Sort.unsorted())).stream()
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private User checkUserExist(Long ownerId) {
-        log.info("Начата процедура проверки наличия пользователя с id: {}", ownerId);
+        log.info("Начата процедура проверки наличия в репозитории пользователя с id: {}", ownerId);
         return userRepository.findById(ownerId).orElseThrow(
                 () -> new UserExistException("Ошибка. Запрошенного пользователя в базе данных не существует"));
     }

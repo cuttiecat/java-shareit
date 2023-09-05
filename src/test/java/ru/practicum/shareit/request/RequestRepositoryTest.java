@@ -26,13 +26,13 @@ public class RequestRepositoryTest {
 
     @Test
     void shouldFindRequestsByRequestorId() {
-        User user = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
-        requestRepository.save(new Request(1L, "Описание запроса №1", user, LocalDateTime.now()));
+        User user = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
+        requestRepository.save(new Request(1L, "Описание запроса 1", user, LocalDateTime.now()));
         List<Request> requestList = requestRepository.findRequestsByRequestorId(1L);
         assertEquals(1, requestList.size());
         assertEquals(1L, requestList.get(0).getId());
-        assertEquals("Описание запроса №1", requestList.get(0).getDescription());
-        assertEquals("Пользователь №1", requestList.get(0).getRequestor().getName());
+        assertEquals("Описание запроса 1", requestList.get(0).getDescription());
+        assertEquals("Пользователь 1", requestList.get(0).getRequestor().getName());
     }
 
     @Test

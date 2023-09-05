@@ -23,32 +23,32 @@ public class UserController {
 
     @PostMapping
     public UserDto addUser(@Valid @RequestBody UserDto userDto) {
-        log.info(CONTROLLER_LOG, "Добавление пользователя: ", userDto);
+        log.info(CONTROLLER_LOG, "добавление пользователя: ", userDto);
         return userService.addUser(userDto);
     }
 
     @PatchMapping("/{id}")
     public UserDto updateUser(@PathVariable("id") Long userId, @RequestBody UserDto userDto) {
-        log.info(CONTROLLER_LOG, "Обновление пользователя c id: ", userId);
+        log.info(CONTROLLER_LOG, "обновление пользователя c id: ", userId);
         return userService.updateUser(userId, userDto);
     }
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable("id") Long userId) {
-        log.info(CONTROLLER_LOG, "Удаление пользователя с id: ", userId);
+        log.info(CONTROLLER_LOG, "удаление пользователя с id: ", userId);
         userService.deleteUser(userId);
     }
 
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable("id") Long userId) {
-        log.info(CONTROLLER_LOG, "Получение пользователя с id: ", userId);
+        log.info(CONTROLLER_LOG, "получение пользователя с id: ", userId);
         return userService.getUser(userId);
     }
 
     @GetMapping
     public List<UserDto> getUsers(@PositiveOrZero @RequestParam(value = "from", required = false) Integer from,
                                   @Positive @RequestParam(value = "size", required = false) Integer size) {
-        log.info(CONTROLLER_LOG, "Получение всех пользователей", "");
+        log.info(CONTROLLER_LOG, "получение всех пользователей", "");
         return userService.getUsers(from, size);
     }
 }

@@ -42,7 +42,7 @@ public class ItemServiceImpl implements ItemService {
     private static final String SERVICE_LOG = "Сервис предметов получил запрос на {}{}";
 
     public ItemDto addItem(ItemDto itemDto, Long ownerId) {
-        log.info(SERVICE_LOG, "Добавление предмета: ", itemDto);
+        log.info(SERVICE_LOG, "добавление предмета: ", itemDto);
         User owner = checkUserExist(ownerId);
         Request request = checkRequestExist(itemDto.getRequestId());
         return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(
@@ -50,7 +50,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public ItemDto updateItem(Long itemId, ItemDto itemDto, Long ownerId) {
-        log.info(SERVICE_LOG, "Обновление предмета c id: ", itemId);
+        log.info(SERVICE_LOG, "обновление предмета c id: ", itemId);
         User owner = checkUserExist(ownerId);
         Item currentBDItem = checkItemExist(itemId);
         Item item = ItemMapper.toItem(itemId, itemDto, owner, currentBDItem.getRequest());
@@ -69,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public void deleteItem(Long itemId, Long ownerId) {
-        log.info(SERVICE_LOG, "Удаление предмета с id: ", itemId);
+        log.info(SERVICE_LOG, "удаление предмета с id: ", itemId);
         checkUserExist(ownerId);
         checkUserIsOwner(itemId, ownerId);
         itemRepository.deleteById(itemId);
@@ -77,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     public ItemDto getItem(Long itemId, Long userId) {
-        log.info(SERVICE_LOG, "Получение предмета с id: ", itemId);
+        log.info(SERVICE_LOG, "получение предмета с id: ", itemId);
         Item item = checkItemExist(itemId);
 
         List<CommentDto> commentList = commentRepository.findAllByItemId(itemId).stream()
@@ -130,7 +130,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional(readOnly = true)
     public List<ItemDto> getItemsByName(String text, Integer from, Integer size) {
-        log.info(SERVICE_LOG, "Получение предметов по названию: ", text);
+        log.info(SERVICE_LOG, "получение предметов по названию: ", text);
         if (text.isBlank()) {
             return List.of();
         }
@@ -150,7 +150,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public CommentDto addCommentToItem(Long itemId, CommentDto commentDto, Long authorId) {
-        log.info(SERVICE_LOG, "Добавление комментария: ", commentDto.getText());
+        log.info(SERVICE_LOG, "добавление комментария: ", commentDto.getText());
         commentDto.setCreated(LocalDateTime.now());
         Item item = checkItemExist(itemId);
         User author = checkUserExist(authorId);

@@ -33,9 +33,9 @@ public class BookingIntegrationTest {
 
     @Test
     void shouldGetOwnerBookingsIntegration() {
-        User booker = new User(1L, "Пользователь №1", "email1@mail.ru");
-        User owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        Item item = new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = new User(1L, "Пользователь 1", "email1@mail.ru");
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        Item item = new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null);
         ReceivedBookingDto receivedBookingDto = new ReceivedBookingDto(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1));
@@ -48,7 +48,7 @@ public class BookingIntegrationTest {
                 .getOwnerBookings(BookingState.ALL, 0, 20, 2L);
         assertEquals(1, bookingDtoList.size());
         assertEquals(1L, bookingDtoList.get(0).getId());
-        assertEquals("Пользователь №1", bookingDtoList.get(0).getBooker().getName());
-        assertEquals("Предмет №1", bookingDtoList.get(0).getItem().getName());
+        assertEquals("Пользователь 1", bookingDtoList.get(0).getBooker().getName());
+        assertEquals("Предмет 1", bookingDtoList.get(0).getItem().getName());
     }
 }

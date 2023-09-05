@@ -27,21 +27,21 @@ public class BookingController {
     @PostMapping
     public ReturnBookingDto addBooking(@Valid @RequestBody ReceivedBookingDto bookingDto,
                                        @RequestHeader(USER_HEADER) Long userId) {
-        log.info(CONTROLLER_LOG, "Добавление брони: ", bookingDto);
+        log.info(CONTROLLER_LOG, "добавление брони: ", bookingDto);
         return bookingService.addBooking(bookingDto, userId);
     }
 
     @PatchMapping("/{bookingId}")
     public ReturnBookingDto setBookingStatus(@PathVariable Long bookingId, @RequestParam("approved") Boolean status,
                                              @RequestHeader(USER_HEADER) Long ownerId) {
-        log.info(CONTROLLER_LOG, "Изменение статуса одобрения владельцем брони с id: ", bookingId);
+        log.info(CONTROLLER_LOG, "изменение статуса одобрения владельцем брони с id: ", bookingId);
         return bookingService.setBookingStatus(bookingId, status, ownerId);
     }
 
     @GetMapping("/{bookingId}")
     public ReturnBookingDto getBooking(@PathVariable Long bookingId,
                                        @RequestHeader(USER_HEADER) Long userId) {
-        log.info(CONTROLLER_LOG, "Получение брони с id: ", bookingId);
+        log.info(CONTROLLER_LOG, "получение брони с id: ", bookingId);
         return bookingService.getBooking(bookingId, userId);
     }
 
@@ -51,7 +51,7 @@ public class BookingController {
             @PositiveOrZero @RequestParam(value = "from", required = false) Integer from,
             @Positive @RequestParam(value = "size", required = false) Integer size,
             @RequestHeader(USER_HEADER) Long ownerId) {
-        log.info(CONTROLLER_LOG, "Получение брони вещей, принадлежащих пользователем с id: ", ownerId);
+        log.info(CONTROLLER_LOG, "получение брони вещей, принадлежащих пользователем с id: ", ownerId);
         return bookingService.getOwnerBookings(BookingState.getBookingsStateFromString(stateText),
                 from, size, ownerId);
     }
@@ -62,7 +62,7 @@ public class BookingController {
             @PositiveOrZero @RequestParam(value = "from", required = false) Integer from,
             @Positive @RequestParam(value = "size", required = false) Integer size,
             @RequestHeader(USER_HEADER) Long bookerId) {
-        log.info(CONTROLLER_LOG, "Получение брони вещей, арендованных пользователю с id: ", bookerId);
+        log.info(CONTROLLER_LOG, "получение брони вещей, арендованных пользователю с id: ", bookerId);
         return bookingService.getBookerBookings(BookingState.getBookingsStateFromString(stateText),
                 from, size, bookerId);
     }

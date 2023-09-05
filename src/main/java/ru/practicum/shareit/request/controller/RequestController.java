@@ -27,7 +27,7 @@ public class RequestController {
     @PostMapping
     public ReturnRequestDto addRequest(@Valid @RequestBody ReceivedRequestDto requestDto,
                                        @RequestHeader(USER_HEADER) Long requestorId) {
-        log.info(CONTROLLER_LOG, "Добавление запроса: ", requestDto);
+        log.info(CONTROLLER_LOG, "добавление запроса: ", requestDto);
         return requestService.addRequest(requestDto, requestorId);
     }
 
@@ -37,20 +37,20 @@ public class RequestController {
                                                     @Positive @RequestParam(value = "size",
                                                             required = false) Integer size,
                                                     @RequestHeader(USER_HEADER) Long userId) {
-        log.info(CONTROLLER_LOG, "Получение запросов постранично начиная с: ", from);
+        log.info(CONTROLLER_LOG, "получение запросов постранично начиная с: ", from);
         return requestService.getOthersRequests(from, size, userId);
     }
 
     @GetMapping("/{requestId}")
     public ReturnRequestDto getRequest(@PathVariable Long requestId,
                                        @RequestHeader(USER_HEADER) Long userId) {
-        log.info(CONTROLLER_LOG, "Получение запроса с id: ", requestId);
+        log.info(CONTROLLER_LOG, "получение запроса с id: ", requestId);
         return requestService.getRequest(requestId, userId);
     }
 
     @GetMapping
     public List<ReturnRequestDto> getUserRequests(@RequestHeader(USER_HEADER) Long requestorId) {
-        log.info(CONTROLLER_LOG, "Получение всех запросов пользователя: ", requestorId);
+        log.info(CONTROLLER_LOG, "получение всех запросов пользователя: ", requestorId);
         return requestService.getUserRequests(requestorId);
     }
 }

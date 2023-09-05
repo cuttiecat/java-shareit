@@ -34,11 +34,11 @@ public class ItemIntegrationTest {
 
     @Test
     void shouldGetItemsByOwnerIntegration() {
-        User booker = new User(1L, "Пользователь №1", "email1@mail.ru");
-        User owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        Item item1 = new Item(1L, "Предмет №1", "Описание предмета №1",
+        User booker = new User(1L, "Пользователь 1", "email1@mail.ru");
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        Item item1 = new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, null);
-        Item item2 = new Item(2L, "Предмет №2", "Описание предмета №2",
+        Item item2 = new Item(2L, "Предмет 2", "Описание предмета 2",
                 true, owner, null);
         ReceivedBookingDto receivedBookingDto = new ReceivedBookingDto(1L, LocalDateTime.now().minusDays(2),
                 LocalDateTime.now().minusDays(1));
@@ -48,17 +48,17 @@ public class ItemIntegrationTest {
         itemService.addItem(ItemMapper.toItemDto(item2, List.of()), 2L);
         bookingService.addBooking(receivedBookingDto, 1L);
         bookingService.setBookingStatus(1L, true, 2L);
-        itemService.addCommentToItem(1L, new CommentDto(1L, "Комментарий №1",
+        itemService.addCommentToItem(1L, new CommentDto(1L, "Комментарий 1",
                 null, null), 1L);
 
         List<ItemDto> itemDtoList = itemService.getItemsByOwner(2L, 0, 4);
         itemDtoList.sort(Comparator.comparing(ItemDto::getId));
         assertEquals(2, itemDtoList.size());
         assertEquals(1L, itemDtoList.get(0).getId());
-        assertEquals("Предмет №1", itemDtoList.get(0).getName());
+        assertEquals("Предмет 1", itemDtoList.get(0).getName());
         assertEquals(1, itemDtoList.get(0).getComments().size());
-        assertEquals("Комментарий №1", itemDtoList.get(0).getComments().get(0).getText());
+        assertEquals("Комментарий 1", itemDtoList.get(0).getComments().get(0).getText());
         assertEquals(2L, itemDtoList.get(1).getId());
-        assertEquals("Предмет №2", itemDtoList.get(1).getName());
+        assertEquals("Предмет 2", itemDtoList.get(1).getName());
     }
 }

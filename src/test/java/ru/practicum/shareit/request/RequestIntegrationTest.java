@@ -33,16 +33,16 @@ public class RequestIntegrationTest {
 
     @Test
     void shouldGetUserRequestsIntegration() {
-        User requestor = new User(1L, "Пользователь №1", "email1@mail.ru");
-        User owner = new User(2L, "Пользователь №2", "email2@mail.ru");
-        Item item1 = new Item(1L, "Предмет №1", "Описание предмета №1",
+        User requestor = new User(1L, "Пользователь 1", "email1@mail.ru");
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        Item item1 = new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, new Request(1L, null, null, null));
-        Item item2 = new Item(2L, "Предмет №2", "Описание предмета №2",
+        Item item2 = new Item(2L, "Предмет 2", "Описание предмета 2",
                 true, owner, new Request(2L, null, null, null));
         userService.addUser(UserMapper.toUserDto(requestor, List.of()));
         userService.addUser(UserMapper.toUserDto(owner, List.of()));
-        requestService.addRequest(new ReceivedRequestDto("Описание запроса №1"), 1L);
-        requestService.addRequest(new ReceivedRequestDto("Описание запроса №2"), 1L);
+        requestService.addRequest(new ReceivedRequestDto("Описание запроса 1"), 1L);
+        requestService.addRequest(new ReceivedRequestDto("Описание запроса 2"), 1L);
         itemService.addItem(ItemMapper.toItemDto(item1, List.of()), 2L);
         itemService.addItem(ItemMapper.toItemDto(item2, List.of()), 2L);
 
@@ -50,12 +50,12 @@ public class RequestIntegrationTest {
         requestDtoList.sort(Comparator.comparing(ReturnRequestDto::getId));
         assertEquals(2, requestDtoList.size());
         assertEquals(1L, requestDtoList.get(0).getId());
-        assertEquals("Описание запроса №1", requestDtoList.get(0).getDescription());
+        assertEquals("Описание запроса 1", requestDtoList.get(0).getDescription());
         assertEquals(1, requestDtoList.get(0).getItems().size());
-        assertEquals("Предмет №1", requestDtoList.get(0).getItems().get(0).getName());
+        assertEquals("Предмет 1", requestDtoList.get(0).getItems().get(0).getName());
         assertEquals(2L, requestDtoList.get(1).getId());
-        assertEquals("Описание запроса №2", requestDtoList.get(1).getDescription());
+        assertEquals("Описание запроса 2", requestDtoList.get(1).getDescription());
         assertEquals(1, requestDtoList.get(1).getItems().size());
-        assertEquals("Предмет №2", requestDtoList.get(1).getItems().get(0).getName());
+        assertEquals("Предмет 2", requestDtoList.get(1).getItems().get(0).getName());
     }
 }

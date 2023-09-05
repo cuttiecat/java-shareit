@@ -32,54 +32,54 @@ public class ItemRepositoryTest {
 
     @Test
     void shouldFindAllByOwnerId() {
-        User requestor = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
+        User requestor = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
         Request request = requestRepository
-                .save(new Request(1L, "Описание запроса №1", requestor, LocalDateTime.now()));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+                .save(new Request(1L, "Описание запроса 1", requestor, LocalDateTime.now()));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, request));
         List<Item> itemList = itemRepository
                 .findAllByOwnerId(2L, new ShareItPageable(0, 5, Sort.unsorted())).toList();
         assertEquals(1, itemList.size());
         assertEquals(1L, itemList.get(0).getId());
-        assertEquals("Предмет №1", itemList.get(0).getName());
-        assertEquals("Описание предмета №1", itemList.get(0).getDescription());
-        assertEquals("Пользователь №2", itemList.get(0).getOwner().getName());
-        assertEquals("Описание запроса №1", itemList.get(0).getRequest().getDescription());
+        assertEquals("Предмет 1", itemList.get(0).getName());
+        assertEquals("Описание предмета 1", itemList.get(0).getDescription());
+        assertEquals("Пользователь 2", itemList.get(0).getOwner().getName());
+        assertEquals("Описание запроса 1", itemList.get(0).getRequest().getDescription());
     }
 
     @Test
     void shouldFindAllByText() {
-        User requestor = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
+        User requestor = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
         Request request = requestRepository
-                .save(new Request(1L, "Описание запроса №1", requestor, LocalDateTime.now()));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+                .save(new Request(1L, "Описание запроса 1", requestor, LocalDateTime.now()));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, request));
         List<Item> itemList = itemRepository
                 .findAllByText("реД", new ShareItPageable(0, 5, Sort.unsorted())).toList();
         assertEquals(1, itemList.size());
         assertEquals(1L, itemList.get(0).getId());
-        assertEquals("Предмет №1", itemList.get(0).getName());
-        assertEquals("Описание предмета №1", itemList.get(0).getDescription());
-        assertEquals("Пользователь №2", itemList.get(0).getOwner().getName());
-        assertEquals("Описание запроса №1", itemList.get(0).getRequest().getDescription());
+        assertEquals("Предмет 1", itemList.get(0).getName());
+        assertEquals("Описание предмета 1", itemList.get(0).getDescription());
+        assertEquals("Пользователь 2", itemList.get(0).getOwner().getName());
+        assertEquals("Описание запроса 1", itemList.get(0).getRequest().getDescription());
     }
 
     @Test
     void shouldFindAllByRequestsId() {
-        User requestor = userRepository.save(new User(1L, "Пользователь №1", "email1@mail.ru"));
+        User requestor = userRepository.save(new User(1L, "Пользователь 1", "email1@mail.ru"));
         Request request = requestRepository
-                .save(new Request(1L, "Описание запроса №1", requestor, LocalDateTime.now()));
-        User owner = userRepository.save(new User(2L, "Пользователь №2", "email2@mail.ru"));
-        itemRepository.save(new Item(1L, "Предмет №1", "Описание предмета №1",
+                .save(new Request(1L, "Описание запроса 1", requestor, LocalDateTime.now()));
+        User owner = userRepository.save(new User(2L, "Пользователь 2", "email2@mail.ru"));
+        itemRepository.save(new Item(1L, "Предмет 1", "Описание предмета 1",
                 true, owner, request));
         List<Item> itemList = itemRepository.findAllByRequestsId(List.of(1L));
         assertEquals(1, itemList.size());
         assertEquals(1L, itemList.get(0).getId());
-        assertEquals("Предмет №1", itemList.get(0).getName());
-        assertEquals("Описание предмета №1", itemList.get(0).getDescription());
-        assertEquals("Пользователь №2", itemList.get(0).getOwner().getName());
-        assertEquals("Описание запроса №1", itemList.get(0).getRequest().getDescription());
+        assertEquals("Предмет 1", itemList.get(0).getName());
+        assertEquals("Описание предмета 1", itemList.get(0).getDescription());
+        assertEquals("Пользователь 2", itemList.get(0).getOwner().getName());
+        assertEquals("Описание запроса 1", itemList.get(0).getRequest().getDescription());
     }
 }
