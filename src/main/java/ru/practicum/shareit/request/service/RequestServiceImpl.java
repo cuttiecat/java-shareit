@@ -16,7 +16,7 @@ import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
 import ru.practicum.shareit.request.requestUtils.RequestMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepositoryImpl;
+import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.utils.ShareItPageable;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class RequestServiceImpl implements RequestService {
     private final RequestRepositoryImpl requestRepository;
-    private final UserRepositoryImpl userRepository;
+    private final UserRepository userRepository;
     private final ItemRepositoryImpl itemRepository;
     private static final String SERVICE_LOG = "Сервис запросов получил запрос на {}{}";
 

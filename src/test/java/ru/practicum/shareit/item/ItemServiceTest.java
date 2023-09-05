@@ -25,7 +25,7 @@ import ru.practicum.shareit.item.service.ItemServiceImpl;
 import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepositoryImpl;
+import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.utils.ShareItPageable;
 
 import java.time.LocalDateTime;
@@ -40,7 +40,7 @@ public class ItemServiceTest {
     @Mock
     private ItemRepositoryImpl itemRepository;
     @Mock
-    private UserRepositoryImpl userRepository;
+    private UserRepository userRepository;
     @Mock
     private BookingRepositoryImpl bookingRepository;
     @Mock
