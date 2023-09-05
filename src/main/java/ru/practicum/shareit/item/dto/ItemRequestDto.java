@@ -1,18 +1,16 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.*;
-import ru.practicum.shareit.booking.dto.BookingItemDto;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class ItemDto {
+public class ItemRequestDto {
     private Long id;
     @NotBlank
     private String name;
@@ -20,8 +18,6 @@ public class ItemDto {
     private String description;
     @NotNull
     private Boolean available;
-    private List<CommentDto> comments;
-    private BookingItemDto lastBooking;
-    private BookingItemDto nextBooking;
+    @NotNull
     private Long requestId;
 }
