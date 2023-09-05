@@ -13,13 +13,13 @@ import java.util.List;
 
 public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
     Page<Booking> findAllByBookerId(@Param("bookerId") Long bookerId, Pageable pageable); // Booker ALL
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.start < :currentTime AND b.end > :currentTime AND b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
@@ -27,7 +27,7 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                            @Param("currentTime") LocalDateTime currentTime,
                                            Pageable pageable); // Booker CURRENT
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.end < :currentTime AND b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
@@ -35,7 +35,7 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                         @Param("currentTime") LocalDateTime currentTime,
                                         Pageable pageable); // Booker PAST
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.start > :currentTime AND b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
@@ -43,28 +43,28 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                           @Param("currentTime") LocalDateTime currentTime,
                                           Pageable pageable); // Booker FUTURE
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.status = 'WAITING' AND b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
     Page<Booking> findAllWaitingByBookerId(@Param("bookerId") Long bookerId,
                                            Pageable pageable); // Booker WAITING
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.status = 'REJECTED' AND b.booker.id = :bookerId " +
             "ORDER BY b.start DESC")
     Page<Booking> findAllRejectedByBookerId(@Param("bookerId") Long bookerId,
                                             Pageable pageable); // Booker REJECTED
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
     Page<Booking> findAllByOwnerId(@Param("ownerId") Long ownerId,
                                    Pageable pageable); // Owner ALL
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.start < :currentTime AND b.end > :currentTime AND b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
@@ -72,7 +72,7 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                           @Param("currentTime") LocalDateTime currentTime,
                                           Pageable pageable); // Owner CURRENT
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.end < :currentTime AND b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
@@ -80,7 +80,7 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                        @Param("currentTime") LocalDateTime currentTime,
                                        Pageable pageable); // Owner PAST
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.start > :currentTime AND b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
@@ -88,14 +88,14 @@ public interface BookingRepositoryImpl extends JpaRepository<Booking, Long> {
                                          @Param("currentTime") LocalDateTime currentTime,
                                          Pageable pageable); // Owner FUTURE
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.status = 'WAITING' AND b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
     Page<Booking> findAllWaitingByOwnerId(@Param("ownerId") Long ownerId,
                                           Pageable pageable); // Owner WAITING
 
-    @Query("SELECT b " +
+    @Query(
             "FROM Booking AS b " +
             "WHERE b.status = 'REJECTED' AND b.item.owner.id = :ownerId " +
             "ORDER BY b.start DESC")
