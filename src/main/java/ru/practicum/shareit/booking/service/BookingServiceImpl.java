@@ -33,10 +33,10 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepositoryImpl bookingRepository;
     private final UserRepositoryImpl userRepository;
     private final ItemRepositoryImpl itemRepository;
-    private static final String SERVICE_LOG = "Сервис бронирования получил запрос на {}{}";
+    private static final String SERVICE_LOG = "{}{} — запрос: ";
 
     public ReturnBookingDto addBooking(ReceivedBookingDto bookingDto, Long userId) {
-        log.info(SERVICE_LOG, "добавление бронирования: ", bookingDto);
+        log.info(SERVICE_LOG, "Добавление бронирования: ", bookingDto);
         Item item = checkItemExist(bookingDto.getItemId());
         if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
             throw new BookingDateValidationException("Ошибка. Даты бронирования не могут содержать null");
@@ -56,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public ReturnBookingDto setBookingStatus(Long bookingId, Boolean status, Long ownerId) {
-        log.info(SERVICE_LOG, "изменение статуса бронирования на: ", status);
+        log.info(SERVICE_LOG, "Изменение статуса бронирования на: ", status);
         Booking booking = checkBookingExist(bookingId);
         checkUserIsOwner(ownerId, booking.getItem().getOwner().getId());
         if (!booking.getStatus().equals(BookingStatus.WAITING)) {
@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     public List<ReturnBookingDto> getBookerBookings(BookingState state, Integer from, Integer size, Long bookerId) {
-        log.info(SERVICE_LOG, "получение бронирований пользователя с id: ", bookerId);
+        log.info(SERVICE_LOG, "Получение бронирований пользователя с id: ", bookerId);
         checkUserExist(bookerId);
         Page<Booking> bookings;
         Pageable pageable = ShareItPageable.checkPageable(from, size, Sort.unsorted());
@@ -110,7 +110,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Transactional(readOnly = true)
     public List<ReturnBookingDto> getOwnerBookings(BookingState state, Integer from, Integer size, Long ownerId) {
-        log.info(SERVICE_LOG, "получение бронирований вещей пользователя с id: ", ownerId);
+        log.info(SERVICE_LOG, "Получение бронирований вещей пользователя с id: ", ownerId);
         checkUserExist(ownerId);
         Page<Booking> bookings;
         Pageable pageable = ShareItPageable.checkPageable(from, size, Sort.unsorted());
