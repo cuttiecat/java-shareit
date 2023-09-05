@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
             userDto.setEmail(currentUser.getEmail());
         }
         User user = UserMapper.toUser(userDto);
-        return UserMapper.toUserDto(userRepository.save(user), // Здесь не стал менять т.к. запрос всегда один
+        return UserMapper.toUserDto(userRepository.save(user),
                 commentRepository.findAllByAuthorId(userId).stream()
                         .map(CommentMapper::toCommentDto)
                         .collect(Collectors.toList()));
