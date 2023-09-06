@@ -1,32 +1,29 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.Getter;
+import lombok.Setter;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @Table(name = "comments")
-@NoArgsConstructor
+@Setter
+@Getter
 public class Comment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "comment_text")
+    @Column(name = "text", nullable = false)
     private String text;
-    @ManyToOne (fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
-    private Item item;
-    @ManyToOne (fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "author_id")
     private User author;
-    @DateTimeFormat
-    @Column(name = "comment_created", updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "item_id")
+    private Item item;
+    @Column(name = "created")
     private LocalDateTime created;
 }

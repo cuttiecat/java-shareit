@@ -1,201 +1,306 @@
 package ru.practicum.shareit.item;
 
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.booking.bookingUtils.BookingStatus;
-import ru.practicum.shareit.booking.dto.BookingItemDto;
-import ru.practicum.shareit.booking.model.Booking;
-import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
-import ru.practicum.shareit.exceptions.*;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit4.SpringRunner;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.itemUtils.CommentMapper;
-import ru.practicum.shareit.item.itemUtils.ItemMapper;
-import ru.practicum.shareit.item.model.Comment;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repository.CommentRepositoryImpl;
-import ru.practicum.shareit.item.repository.ItemRepositoryImpl;
-import ru.practicum.shareit.item.service.ItemServiceImpl;
-import ru.practicum.shareit.request.model.Request;
-import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepositoryImpl;
-import ru.practicum.shareit.utils.ShareItPageable;
+import ru.practicum.shareit.item.dto.ItemIncomeDto;
+import ru.practicum.shareit.util.exceptions.EntityNotExistException;
+import ru.practicum.shareit.util.exceptions.UpdateErrorException;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(MockitoExtension.class)
-public class ItemServiceTest {
-    @Mock
-    private ItemRepositoryImpl itemRepository;
-    @Mock
-    private UserRepositoryImpl userRepository;
-    @Mock
-    private BookingRepositoryImpl bookingRepository;
-    @Mock
-    private CommentRepositoryImpl commentRepository;
-    @Mock
-    private RequestRepositoryImpl requestRepository;
-    @InjectMocks
-    private ItemServiceImpl itemService;
-    private Request request;
-    private Item item;
-    private User owner;
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class ItemServiceTest {
+    private final ItemService itemService;
 
-    @BeforeEach
-    void setUp() {
-        User user = new User(1L, "Пользователь 1", "email1@mail.ru");
-        request = new Request(1L, "Описание запроса 1", user, LocalDateTime.now());
-        owner = new User(2L, "Пользователь 2", "email2@mail.ru");
-        item = new Item(1L, "Предмет 1", "Описание предмета 1", true, owner, request);
+    @Test
+    @Order(0)
+    @Sql(value = { "/test-schema.sql", "/users-create-test.sql" })
+    void createTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("users 1 item")
+                .available(false)
+                .build();
+        Optional<ItemDto> itemDto = Optional.of(itemService.create(incomeDto, 1L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", false);
+                });
     }
 
     @Test
-    void shouldAddItem() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(requestRepository.findById(anyLong())).thenReturn(Optional.of(request));
-        when(itemRepository.save(any())).thenReturn(item);
-        ItemDto itemDto = itemService.addItem(ItemMapper.toItemDto(item, List.of()), 2L);
-        assertNotNull(itemDto);
-        assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет 1", itemDto.getName());
-        assertEquals("Описание предмета 1", itemDto.getDescription());
-        verify(userRepository, times(1)).findById(anyLong());
-        verify(requestRepository, times(1)).findById(anyLong());
-        verify(itemRepository, times(1)).save(any());
+    @Order(1)
+    void updateAvailableTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .available(true)
+                .build();
+        Optional<ItemDto> itemDto = Optional.of(itemService.update(incomeDto, 1L, 1L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                });
     }
 
     @Test
-    void shouldUpdateItem() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(itemRepository.save(any())).thenReturn(item);
-        ItemDto itemDto = itemService.updateItem(1L, ItemMapper.toItemDto(item, List.of()), 2L);
-        assertNotNull(itemDto);
-        assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет 1", itemDto.getName());
-        assertEquals("Описание предмета 1", itemDto.getDescription());
-        verify(userRepository, times(1)).findById(anyLong());
-        verify(itemRepository, times(2)).findById(anyLong());
+    @Order(2)
+    void updateDescriptionTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .description("users 1 updated item")
+                .build();
+        Optional<ItemDto> itemDto = Optional.of(itemService.update(incomeDto, 1L, 1L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                });
     }
 
     @Test
-    void shouldDeleteUser() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        itemService.deleteItem(1L, 2L);
-        verify(itemRepository, times(1)).deleteById(1L);
+    @Order(3)
+    void updateNameTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("updated item")
+                .build();
+        Optional<ItemDto> itemDto = Optional.of(itemService.update(incomeDto, 1L, 1L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                });
     }
 
     @Test
-    void shouldGetItem() {
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(commentRepository.findAllByItemId(anyLong())).thenReturn(List.of());
-        when(bookingRepository.findNearPreviousBooking(any(), anyLong(), anyLong()))
-                .thenReturn(List.of(new BookingItemDto(1L, 1L, 1L)));
-        when(bookingRepository.findNearNextBooking(any(), anyLong(), anyLong()))
-                .thenReturn(List.of(new BookingItemDto(2L, 1L, 1L)));
-        ItemDto itemDto = itemService.getItem(1L, 2L);
-        assertNotNull(itemDto);
-        assertEquals(1L, itemDto.getId());
-        assertEquals("Предмет 1", itemDto.getName());
-        assertEquals("Описание предмета 1", itemDto.getDescription());
-        assertEquals(1L, itemDto.getLastBooking().getId());
-        assertEquals(2L, itemDto.getNextBooking().getId());
-        verify(itemRepository, times(1)).findById(anyLong());
-        verify(bookingRepository, times(1)).findNearPreviousBooking(any(), anyLong(), anyLong());
-        verify(bookingRepository, times(1)).findNearNextBooking(any(), anyLong(), anyLong());
+    @Order(4)
+    void updateUserIdUnCorrectTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("updated item")
+                .description("users 1 updated item")
+                .available(true)
+                .build();
+
+        UpdateErrorException exception = assertThrows(UpdateErrorException.class,
+                () -> itemService.update(incomeDto, 1L, 2L));
+
+        Assertions.assertThat(exception)
+                .hasMessage("Ошибка обновления вещи c id = 1 , невозможно обновить вещь другого пользователя");
     }
 
     @Test
-    void shouldGetItemsByOwner() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(itemRepository.findAllByOwnerId(2L, new ShareItPageable(0, 20, Sort.unsorted())))
-                .thenReturn(new PageImpl<>(List.of(item)));
-        when(bookingRepository.findAllByOwnerId(anyLong(), any())).thenReturn(new PageImpl<>(List.of()));
-        when(bookingRepository.findNearPreviousBookings(any(), anyLong())).thenReturn(List.of());
-        when(bookingRepository.findNearNextBookings(any(), anyLong())).thenReturn(List.of());
-        when(commentRepository.findAllByItemOwnerId(any())).thenReturn(List.of());
+    @Order(5)
+    void updateItemIdUnCorrectTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("updated item")
+                .description("users 1 updated item")
+                .available(true)
+                .build();
 
-        List<ItemDto> itemDtoList = itemService.getItemsByOwner(2L, 0, 20);
-        assertEquals(1, itemDtoList.size());
-        assertEquals(1L, itemDtoList.get(0).getId());
-        assertEquals("Предмет 1", itemDtoList.get(0).getName());
-        assertEquals("Описание предмета 1", itemDtoList.get(0).getDescription());
-
-        verify(userRepository, times(1)).findById(anyLong());
-        verify(itemRepository, times(1)).findAllByOwnerId(anyLong(), any());
-        verify(bookingRepository, times(1)).findAllByOwnerId(anyLong(), any());
-        verify(bookingRepository, times(1)).findNearPreviousBookings(any(), anyLong());
-        verify(bookingRepository, times(1)).findNearNextBookings(any(), anyLong());
-        verify(commentRepository, times(1)).findAllByItemOwnerId(any());
+        assertThrows(EntityNotExistException.class, () -> itemService.update(incomeDto,10L, 1L));
     }
 
     @Test
-    void shouldGetItemsByName() {
-        when(itemRepository.findAllByText("Текст", new ShareItPageable(0, 20, Sort.unsorted())))
-                .thenReturn(new PageImpl<>(List.of(item)));
-        List<ItemDto> itemDtoList = itemService.getItemsByName("Текст", 0, 20);
-        assertEquals(1, itemDtoList.size());
-        assertEquals(1L, itemDtoList.get(0).getId());
-        assertEquals("Предмет 1", itemDtoList.get(0).getName());
-        assertEquals("Описание предмета 1", itemDtoList.get(0).getDescription());
-        verify(itemRepository, times(1)).findAllByText(anyString(), any());
+    @Order(6)
+    @Sql(value = { "/bookings-create-test.sql" })
+    void addCommentTest() {
+        CommentDto incomeCommentDto = CommentDto.builder()
+                .text("text 1 comment")
+                .authorName("comment 1 authorName")
+                .build();
+        Optional<CommentDto> commentDto = Optional.of(itemService.addComment(incomeCommentDto, 1L, 2L));
+
+        Assertions.assertThat(commentDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("text", "text 1 comment");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("authorName", "name1");
+                });
     }
 
     @Test
-    void shouldAddCommentToItem() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        User user = new User(3L, "Пользователь 3", "email3@mail.ru");
-        Comment comment = new Comment(1L, "Текст комментария", item, user, localDateTime);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-        when(bookingRepository.findAllPastByBookerId(anyLong(), any(), any()))
-                .thenReturn(new PageImpl<>(List.of(new Booking(1L, localDateTime.minusDays(4),
-                        localDateTime.minusDays(2), item, user, BookingStatus.APPROVED))));
-        when(commentRepository.save(any())).thenReturn(comment);
-
-        CommentDto commentDto = itemService.addCommentToItem(1L, CommentMapper.toCommentDto(comment), 3L);
-
-        assertNotNull(commentDto);
-        assertEquals(1L, commentDto.getId());
-        assertEquals("Текст комментария", commentDto.getText());
-        assertEquals("Пользователь 3", commentDto.getAuthorName());
-        verify(userRepository, times(1)).findById(anyLong());
-        verify(itemRepository, times(1)).findById(anyLong());
-        verify(bookingRepository, times(1)).findAllPastByBookerId(anyLong(), any(), any());
-        verify(commentRepository, times(1)).save(any());
+    @Order(7)
+    void getByWrongIdTest() {
+        assertThrows(EntityNotExistException.class, () -> itemService.getById(100L, 1L));
     }
 
     @Test
-    void checkExistExceptions() {
-        final ItemDto itemDto1 = new ItemDto();
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
-        assertThrows(UserExistException.class,
-                () -> itemService.addItem(itemDto1, 2L));
+    @Order(8)
+    void getByIdForOwnerTest() {
+        Optional<ItemDto> itemDto = Optional.of(itemService.getById(1L, 1L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                    Assertions.assertThat(i).hasFieldOrProperty("lastBooking");
+                    Assertions.assertThat(i.getLastBooking()).hasFieldOrPropertyWithValue("bookerId", 2L);
+                    Assertions.assertThat(i).hasFieldOrProperty("nextBooking");
+                    Assertions.assertThat(i.getNextBooking()).isNull();
+                    Assertions.assertThat(i).hasFieldOrProperty("comments");
+                    Assertions.assertThat(i.getComments()).hasSize(1);
+                });
     }
 
     @Test
-    void checkValidationException() {
-        Item localItem = new Item(2L, null, null, null, null, null);
-        Booking booking = new Booking(1L, LocalDateTime.now(), LocalDateTime.now(),
-                item, owner, BookingStatus.APPROVED);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(owner));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(localItem));
-        when(bookingRepository.findAllPastByBookerId(anyLong(), any(), any()))
-                .thenReturn(new PageImpl<>(List.of(booking)));
-        assertThrows(CommentBookerException.class, () -> itemService.addCommentToItem(
-                2L, new CommentDto(null, "Комментарий 1", null, null),2L));
+    @Order(9)
+    void getByIdNotForOwnerTest() {
+        Optional<ItemDto> itemDto = Optional.of(itemService.getById(1L, 3L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 1 updated item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                    Assertions.assertThat(i.getLastBooking()).isNull();
+                    Assertions.assertThat(i).hasFieldOrProperty("comments");
+                    Assertions.assertThat(i.getComments()).hasSize(1);
+                });
+    }
+
+    @Test
+    @Order(10)
+    void getAllByOwnerIdTest() {
+        List<ItemDto> items = itemService.getAllByUserId(0, 10, 1L);
+        Assertions.assertThat(items)
+                .hasSize(1);
+
+        items = itemService.getAllByUserId(0, 10, 3L);
+        Assertions.assertThat(items)
+                .isEmpty();
+    }
+
+    @Test
+    @Order(11)
+    void getAllByTextTest() {
+        List<ItemDto> items = itemService.getAllByText(0, 10, "item");
+
+        Assertions.assertThat(items)
+                .hasSize(1);
+
+        Assertions.assertThat(items.get(0))
+                .hasFieldOrPropertyWithValue("id", 1L);
+    }
+
+    @Test
+    @Order(12)
+    @Sql(value = { "/item-create-test.sql" })
+    void getAllByUserIdPaginationTest() {
+        List<ItemDto> items = itemService.getAllByUserId(0, 10, 1L);
+
+        Assertions.assertThat(items)
+                .hasSize(6);
+        Assertions.assertThat(items.get(0))
+                .hasFieldOrPropertyWithValue("name", "updated item");
+
+        items = itemService.getAllByUserId(3, 2, 1L);
+
+        Assertions.assertThat(items)
+                .hasSize(2);
+        Assertions.assertThat(items.get(0))
+                .hasFieldOrPropertyWithValue("name", "item2");
+    }
+
+    @Test
+    @Order(13)
+    void deleteAll() {
+        itemService.deleteAll();
+        List<ItemDto> items = itemService.getAllByUserId(0, 10, 1L);
+
+        Assertions.assertThat(items)
+                .isEmpty();
+    }
+
+    @Test
+    @Order(14)
+    @Sql(value = {"/request-create-test.sql"})
+    void createTestWithRequest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("users 3 item")
+                .available(true)
+                .requestId(1L)
+                .build();
+        Optional<ItemDto> itemDto = Optional.of(itemService.create(incomeDto, 3L));
+
+        Assertions.assertThat(itemDto)
+                .isPresent()
+                .hasValueSatisfying(i -> {
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("id", 7L);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("name", "item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("description", "users 3 item");
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("available", true);
+                    Assertions.assertThat(i).hasFieldOrPropertyWithValue("requestId", 1L);
+                });
+    }
+
+    @Test
+    @Order(15)
+    void createRequestNotExistTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("users 1 item")
+                .available(false)
+                .requestId(100L)
+                .build();
+
+        assertThrows(EntityNotExistException.class, () -> itemService.create(incomeDto, 1L));
+    }
+
+    @Test
+    @Order(16)
+    void createUserNotExistTest() {
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("users 1 item")
+                .available(false)
+                .build();
+
+        assertThrows(EntityNotExistException.class, () -> itemService.create(incomeDto, 100L));
+    }
+
+    @Test
+    @Order(17)
+    void deleteByIdTest() {
+        itemService.deleteById(1L, 1L);
+        assertThrows(EntityNotExistException.class, () -> itemService.getById(1L, 1L));
     }
 }

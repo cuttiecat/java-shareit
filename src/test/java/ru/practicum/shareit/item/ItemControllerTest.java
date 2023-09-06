@@ -1,168 +1,250 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import ru.practicum.shareit.booking.dto.BookingItemDto;
-import ru.practicum.shareit.item.controller.ItemController;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.dto.ItemIncomeDto;
+import ru.practicum.shareit.item.impl.ItemController;
+import ru.practicum.shareit.user.dto.UserDto;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+@WebMvcTest(controllers = ItemController.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class ItemControllerTest {
+    private final ObjectMapper objectMapper;
+    private final MockMvc mockMvc;
+    @MockBean
+    private final ItemService itemService;
 
-@ExtendWith(MockitoExtension.class)
-public class ItemControllerTest {
-    @Mock
-    private ItemService itemService;
-    @InjectMocks
-    private ItemController itemController;
-    private static final String USER_HEADER = "X-Sharer-User-Id";
-    private final ObjectMapper mapper = new ObjectMapper();
-    private MockMvc mvc;
-    private ItemDto receivedItemDto;
-    private ItemDto returnItemDto;
+    @SneakyThrows
+    @Test
+    void getById_correctUser_thenReturnOk() {
+        long itemId = 1L;
+        long userId = 1L;
+        mockMvc.perform(MockMvcRequestBuilders.get("/items/{itemId}", itemId)
+                        .header("X-Sharer-User-Id", userId))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-    @BeforeEach
-    void setUp() {
-        mvc = MockMvcBuilders
-                .standaloneSetup(itemController)
+        Mockito.verify(itemService).getById(itemId, userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void getById_unCorrectUser_thenReturnBadRequest() {
+        long itemId = 1L;
+        long userId = 1L;
+        mockMvc.perform(MockMvcRequestBuilders.get("/items/{itemId}", itemId))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        Mockito.verify(itemService, Mockito.never()).getById(itemId, userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void getAllByUserId_withoutPaginationParams_thenReturnOk() {
+        long userId = 1L;
+        mockMvc.perform(MockMvcRequestBuilders.get("/items")
+                        .header("X-Sharer-User-Id", userId))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(itemService).getAllByUserId(0, 10, userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void getAllByUserId_withPaginationParams_thenReturnOk() {
+        long userId = 1L;
+        int from = 3;
+        int size = 2;
+        mockMvc.perform(MockMvcRequestBuilders.get("/items?from={from}&size={size}", from, size)
+                        .header("X-Sharer-User-Id", userId))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(itemService).getAllByUserId(3, 2, userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void getAllByText_withoutPaginationParams_thenReturnOk() {
+        String text = "java forever";
+        mockMvc.perform(MockMvcRequestBuilders.get("/items/search?text={text}", text))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(itemService).getAllByText(0, 10, text);
+    }
+
+    @SneakyThrows
+    @Test
+    void create_allCorrect_thenReturnOk() {
+        long userId = 1L;
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("item description")
+                .available(false)
+                .requestId(null)
                 .build();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        BookingItemDto bookingItemDto = new BookingItemDto(null, null, null);
-        receivedItemDto = new ItemDto(null, "Предмет 1", "Описание предмета 1", true,
-                List.of(), bookingItemDto, bookingItemDto, 1L);
-        returnItemDto = receivedItemDto;
-        returnItemDto.setId(1L);
+        ItemDto itemDto = ItemDto.builder()
+                .name("item")
+                .description("item description")
+                .available(false)
+                .owner(UserDto.builder()
+                        .id(1L)
+                        .name("user")
+                        .email("user@yandex.ru")
+                        .build())
+                .nextBooking(null)
+                .lastBooking(null)
+                .comments(List.of())
+                .requestId(null)
+                .build();
+
+        Mockito.when(itemService.create(ArgumentMatchers.any(), ArgumentMatchers.anyLong())).thenReturn(itemDto);
+        String content = mockMvc.perform(MockMvcRequestBuilders.post("/items")
+                        .header("X-Sharer-User-Id", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(incomeDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Assertions.assertEquals(objectMapper.writeValueAsString(itemDto), content);
     }
 
+    @SneakyThrows
     @Test
-    void shouldAddItem() throws Exception {
-        when(itemService.addItem(receivedItemDto, 1L)).thenReturn(returnItemDto);
-        mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(receivedItemDto))
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
+    void create_unCorrectItemDto_thenReturnOk() {
+        long userId = 1L;
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("")
+                .description("")
+                .available(false)
+                .requestId(null)
+                .build();
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/items")
+                        .header("X-Sharer-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(incomeDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Предмет 1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
-                .andExpect(jsonPath("$.available", is(true)))
-                .andExpect(jsonPath("$.requestId", is(1)));
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Mockito.verify(itemService, Mockito.never()).create(ArgumentMatchers.any(), ArgumentMatchers.anyLong());
     }
 
+    @SneakyThrows
     @Test
-    void shouldUpdateItem() throws Exception {
-        returnItemDto.setName("Новый предмет 1");
-        when(itemService.updateItem(1L, returnItemDto, 1L)).thenReturn(returnItemDto);
-        mvc.perform(patch("/items/1")
-                        .content(mapper.writeValueAsString(returnItemDto))
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
+    void update_allCorrect_thenReturnOk() {
+        Long userId = 1L;
+        Long itemId = 1L;
+        ItemIncomeDto incomeDto = ItemIncomeDto.builder()
+                .name("item")
+                .description("item description")
+                .available(true)
+                .requestId(null)
+                .build();
+        ItemDto itemDto = ItemDto.builder()
+                .name("item")
+                .description("item description")
+                .available(true)
+                .owner(UserDto.builder()
+                        .id(1L)
+                        .name("user")
+                        .email("user@yandex.ru")
+                        .build())
+                .nextBooking(null)
+                .lastBooking(null)
+                .comments(List.of())
+                .requestId(null)
+                .build();
+
+        Mockito.when(itemService.update(ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyLong())).thenReturn(itemDto);
+        String content = mockMvc.perform(MockMvcRequestBuilders.patch("/items/{itemId}", itemId)
+                        .header("X-Sharer-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(incomeDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Новый предмет 1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
-                .andExpect(jsonPath("$.available", is(true)))
-                .andExpect(jsonPath("$.requestId", is(1)));
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Assertions.assertEquals(objectMapper.writeValueAsString(itemDto), content);
     }
 
+    @SneakyThrows
     @Test
-    void shouldDeleteItem() throws Exception {
-        mvc.perform(delete("/items/1")
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
+    void addComment_allCorrect_thenReturnOk() {
+        Long userId = 1L;
+        Long itemId = 1L;
+        CommentDto commentDto = CommentDto.builder()
+                .authorName("user")
+                .text("not bad")
+                .build();
+
+        Mockito.when(itemService.addComment(ArgumentMatchers.any(), ArgumentMatchers.anyLong(), ArgumentMatchers.anyLong())).thenReturn(commentDto);
+        String content = mockMvc.perform(MockMvcRequestBuilders.post("/items/{itemId}/comment", itemId)
+                        .header("X-Sharer-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Assertions.assertEquals(objectMapper.writeValueAsString(commentDto), content);
     }
 
+    @SneakyThrows
     @Test
-    void shouldGetItem() throws Exception {
-        when(itemService.getItem(anyLong(), anyLong())).thenReturn(returnItemDto);
-        mvc.perform(get("/items/1")
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Предмет 1")))
-                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
-                .andExpect(jsonPath("$.available", is(true)))
-                .andExpect(jsonPath("$.requestId", is(1)));
+    void deleteById_correctUser_thenReturnOk() {
+        long userId = 1L;
+        long itemId = 1L;
+        mockMvc.perform(MockMvcRequestBuilders.delete("/items/{itemId}", itemId)
+                        .header("X-Sharer-User-Id", userId))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        Mockito.verify(itemService).deleteById(itemId, userId);
     }
 
+    @SneakyThrows
     @Test
-    void shouldGetItemsByName() throws Exception {
-        when(itemService.getItemsByName("редмет", 0, 2)).thenReturn(List.of(returnItemDto));
-        mvc.perform(get("/items/search?from=0&size=2&text={text}", "редмет")
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
-                .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
-                .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
-    }
+    void deleteAll_thenReturnOk() {
+        mockMvc.perform(MockMvcRequestBuilders.delete("/items"))
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.status().isOk());
 
-    @Test
-    void shouldGetItemsByOwner() throws Exception {
-        when(itemService.getItemsByOwner(1L, 0, 7)).thenReturn(List.of(returnItemDto));
-        mvc.perform(get("/items?from=0&size=7")
-                        .header(USER_HEADER, 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
-                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
-                .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
-                .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
-    }
-
-    @Test
-    void shouldAddCommentToItem() throws Exception {
-        CommentDto receivedCommentDto =
-                new CommentDto(null, "Коммент к предмету 1", "Пользователь 1", LocalDateTime.now());
-        receivedCommentDto.setId(1L);
-        when(itemService.addCommentToItem(1L, receivedCommentDto, 2L)).thenReturn(receivedCommentDto);
-        mvc.perform(post("/items/1/comment")
-                        .content(mapper.writeValueAsString(receivedCommentDto))
-                        .header(USER_HEADER, 2L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.created", is(notNullValue())))
-                .andExpect(jsonPath("$.text", is("Коммент к предмету 1")));
+        Mockito.verify(itemService).deleteAll();
     }
 }

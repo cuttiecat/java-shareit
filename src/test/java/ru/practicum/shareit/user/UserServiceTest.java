@@ -1,98 +1,127 @@
 package ru.practicum.shareit.user;
 
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.item.repository.CommentRepositoryImpl;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit4.SpringRunner;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepositoryImpl;
-import ru.practicum.shareit.user.service.UserServiceImpl;
-import ru.practicum.shareit.utils.ShareItPageable;
+import ru.practicum.shareit.user.dto.UserIncomeDto;
+import ru.practicum.shareit.util.exceptions.EntityNotExistException;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
-    @Mock
-    private UserRepositoryImpl userRepository;
-    @Mock
-    private CommentRepositoryImpl commentRepository;
-    @InjectMocks
-    private UserServiceImpl userService;
-    private UserDto receivedUser;
-    private User returnUser;
+@RunWith(SpringRunner.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SpringBootTest
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class UserServiceTest {
+    private final UserService userService;
 
-    @BeforeEach
-    void setUp() {
-        receivedUser = new UserDto(null, "Пользователь 1", "email1@mail.ru", List.of());
-        returnUser = new User(1L, "Пользователь 1", "email1@mail.ru");
+    @Test
+    @Order(0)
+    @Sql(value = { "/test-schema.sql" })
+    void createTest() {
+        UserIncomeDto userCreateDto = UserIncomeDto.builder()
+                .name("user")
+                .email("user@yandex.ru")
+                .build();
+        Optional<UserDto> userDto = Optional.of(userService.create(userCreateDto));
+
+        assertThat(userDto)
+                .isPresent()
+                .hasValueSatisfying(f -> {
+                            assertThat(f).hasFieldOrPropertyWithValue("id", 1L);
+                            assertThat(f).hasFieldOrPropertyWithValue("name", "user");
+                            assertThat(f).hasFieldOrPropertyWithValue("email", "user@yandex.ru");
+                        }
+                );
     }
 
     @Test
-    void shouldAddUser() {
-        when(userRepository.save(any())).thenReturn(returnUser);
-        UserDto testUser = userService.addUser(receivedUser);
-        assertNotNull(testUser);
-        assertEquals(1L, testUser.getId());
-        assertEquals("Пользователь 1", testUser.getName());
-        assertEquals("email1@mail.ru", testUser.getEmail());
-        verify(userRepository, times(1)).save(any());
+    @Order(1)
+    void updateTest() {
+        UserIncomeDto userUpdateDto = UserIncomeDto.builder()
+                .name("userUpdated")
+                .email("userUpdated@yandex.ru")
+                .build();
+        Optional<UserDto> userDto = Optional.of(userService.update(userUpdateDto, 1L));
+
+        assertThat(userDto)
+                .isPresent()
+                .hasValueSatisfying(f -> {
+                            assertThat(f).hasFieldOrPropertyWithValue("id", 1L);
+                            assertThat(f).hasFieldOrPropertyWithValue("name", "userUpdated");
+                            assertThat(f).hasFieldOrPropertyWithValue("email", "userUpdated@yandex.ru");
+                        }
+                );
     }
 
     @Test
-    void shouldUpdateUser() {
-        receivedUser.setId(1L);
-        receivedUser.setName("Новый пользователь 1");
-        returnUser.setName("Новый пользователь 1");
-        when(userRepository.save(any())).thenReturn(returnUser);
-        when(userRepository.findById(any())).thenReturn(Optional.of(returnUser));
-        UserDto testUser = userService.updateUser(1L, receivedUser);
-        assertNotNull(testUser);
-        assertEquals(1L, testUser.getId());
-        assertEquals("Новый пользователь 1", testUser.getName());
-        assertEquals("email1@mail.ru", testUser.getEmail());
-        verify(userRepository, times(1)).save(any());
+    @Order(2)
+    void getByIdCorrectTest() {
+        Optional<UserDto> userDto = Optional.of(userService.getById(1L));
+
+        assertThat(userDto)
+                .isPresent()
+                .hasValueSatisfying(f -> {
+                            assertThat(f).hasFieldOrPropertyWithValue("id", 1L);
+                            assertThat(f).hasFieldOrPropertyWithValue("name", "userUpdated");
+                            assertThat(f).hasFieldOrPropertyWithValue("email", "userUpdated@yandex.ru");
+                        }
+                );
     }
 
     @Test
-    void shouldDeleteUser() {
-        userService.deleteUser(1L);
-        verify(userRepository, times(1)).deleteById(1L);
+    @Order(3)
+    void getByIdUnCorrectTest() {
+        assertThrows(EntityNotExistException.class, () -> userService.getById(100L));
     }
 
     @Test
-    void shouldGetUser() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(returnUser));
-        UserDto testUser = userService.getUser(1L);
-        assertNotNull(testUser);
-        assertEquals(1L, testUser.getId());
-        assertEquals("Пользователь 1", testUser.getName());
-        assertEquals("email1@mail.ru", testUser.getEmail());
-        verify(userRepository, times(1)).findById(anyLong());
+    @Order(4)
+    void getAllTest() {
+        UserIncomeDto userCreateDto = UserIncomeDto.builder()
+                .name("user1")
+                .email("user1@yandex.ru")
+                .build();
+        userService.create(userCreateDto);
+        List<UserDto> users = userService.getAll();
+
+        assertThat(users)
+                .hasSize(2)
+                .map(UserDto::getId)
+                .contains(1L, 2L);
     }
 
     @Test
-    void shouldGetUsers() {
-        User returnUser2 = new User(5L, "Пользователь 5", "email5@mail.ru");
-        User returnUser3 = new User(9L, "Пользователь 9", "email9@mail.ru");
-        when(userRepository.findAll(new ShareItPageable(0, 20, Sort.unsorted())))
-                .thenReturn(new PageImpl<>(List.of(returnUser,returnUser2, returnUser3)));
-        when(commentRepository.findAll()).thenReturn(List.of());
-        List<UserDto> userList = userService.getUsers(null, null);
-        assertEquals(3, userList.size());
-        assertEquals(1L, userList.get(0).getId());
-        assertEquals(9L, userList.get(2).getId());
-        assertEquals(5L, userList.get(1).getId());
-        verify(userRepository, times(1)).findAll(new ShareItPageable(0, 20, Sort.unsorted()));
+    @Order(5)
+    void deleteByIdTest() {
+        userService.deleteById(1L);
+        List<UserDto> users = userService.getAll();
+
+        assertThat(users)
+                .hasSize(1)
+                .map(UserDto::getId)
+                .contains(2L);
+    }
+
+    @Test
+    @Order(6)
+    void deleteAllTest() {
+        userService.deleteAll();
+        List<UserDto> users = userService.getAll();
+
+        assertThat(users)
+                .isEmpty();
     }
 }

@@ -1,111 +1,203 @@
 package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import ru.practicum.shareit.user.controller.UserController;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.service.UserServiceImpl;
+import ru.practicum.shareit.user.dto.UserIncomeDto;
+import ru.practicum.shareit.user.impl.UserController;
 
+import javax.validation.ConstraintViolationException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
-public class UserControllerTest {
-    @Mock
-    private UserServiceImpl userService;
-    @InjectMocks
-    private UserController userController;
-    private final ObjectMapper mapper = new ObjectMapper();
-    private MockMvc mvc;
-    private UserDto receivedUserDto;
-    private UserDto returnUserDto;
+@WebMvcTest(controllers = UserController.class)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+class UserControllerTest {
+    private final ObjectMapper objectMapper;
+    private final MockMvc mockMvc;
+    @MockBean
+    private final UserService userService;
 
-    @BeforeEach
-    void setUp() {
-        mvc = MockMvcBuilders
-                .standaloneSetup(userController)
-                .build();
-        receivedUserDto = new UserDto(null, "Пользователь 1", "email1@mail.ru", List.of());
-        returnUserDto = receivedUserDto;
-        returnUserDto.setId(1L);
-    }
-
+    @SneakyThrows
     @Test
-    void shouldAddUser() throws Exception {
-        when(userService.addUser(any())).thenReturn(returnUserDto);
-        mvc.perform(post("/users")
-                        .content(mapper.writeValueAsString(receivedUserDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Пользователь 1")))
-                .andExpect(jsonPath("$.email", is("email1@mail.ru")));
-    }
-
-    @Test
-    void shouldUpdateUser() throws Exception {
-        returnUserDto.setName("Новый пользователь 1");
-        when(userService.updateUser(anyLong(), any())).thenReturn(returnUserDto);
-        mvc.perform(patch("/users/1")
-                        .content(mapper.writeValueAsString(returnUserDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Новый пользователь 1")))
-                .andExpect(jsonPath("$.email", is("email1@mail.ru")));
-    }
-
-    @Test
-    void shouldDeleteUser() throws Exception {
-        mvc.perform(delete("/users/1")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+    void getById_correctUser_thenReturnOk() {
+        long userId = 1L;
+        mockMvc.perform(get("/users/{userId}", userId))
+                .andDo(print())
                 .andExpect(status().isOk());
+
+        verify(userService).getById(userId);
     }
 
+    @SneakyThrows
     @Test
-    void shouldGetUser() throws Exception {
-        when(userService.getUser(anyLong())).thenReturn(returnUserDto);
-        mvc.perform(get("/users/1")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(1)))
-                .andExpect(jsonPath("$.name", is("Пользователь 1")))
-                .andExpect(jsonPath("$.email", is("email1@mail.ru")));
+    void getAll_correctUser_thenReturnOk() {
+        long userId = 1L;
+        mockMvc.perform(get("/users", userId))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(userService).getAll();
     }
 
+    @SneakyThrows
     @Test
-    void shouldGetUsers() throws Exception {
-        when(userService.getUsers(0, 7)).thenReturn(List.of(returnUserDto));
-        mvc.perform(get("/users?from=0&size=7")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
+    void createTest_correctUserIncomeDto_thenReturnOk() {
+        UserIncomeDto userIncomeDto = UserIncomeDto.builder()
+                .name("User")
+                .email("user@yandex.ru")
+                .build();
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .name("user")
+                .email("user@yandex.ru")
+                .build();
+
+        when(userService.create(any())).thenReturn(userDto);
+        String result = mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(userIncomeDto))
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
-                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Пользователь 1")))
-                .andExpect(jsonPath("$[*].email", containsInAnyOrder("email1@mail.ru")));
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Assertions.assertEquals(objectMapper.writeValueAsString(userDto), result);
+    }
+
+    @SneakyThrows
+    @Test
+    void createTest_unCorrectUserEmail_thenReturnBadRequest() {
+        UserIncomeDto userIncomeDto = UserIncomeDto.builder()
+                .name("User")
+                .email("userYandexRu")
+                .build();
+
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(userIncomeDto))
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        verify(userService, never()).create(any());
+    }
+
+    @SneakyThrows
+    @Test
+    void createTest_UnCorrectUserName_thenReturnBadRequest() {
+        UserIncomeDto userIncomeDto = UserIncomeDto.builder()
+                .name(null)
+                .email("user@yandex.ru")
+                .build();
+
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(userIncomeDto))
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        verify(userService, never()).create(any());
+    }
+
+    @SneakyThrows
+    @Test
+    void updateTest_correctUserIncomeDto_thenReturnOk() {
+        UserIncomeDto userIncomeDto = UserIncomeDto.builder()
+                .name("User")
+                .email("user@yandex.ru")
+                .build();
+        UserDto userDto = UserDto.builder()
+                .id(1L)
+                .name("UserUpdate")
+                .email("user@yandex.ru")
+                .build();
+
+        when(userService.update(any(), anyLong())).thenReturn(userDto);
+        String result = mockMvc.perform(
+                        patch("/users/{userId}", 1L)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(userIncomeDto))
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Assertions.assertEquals(objectMapper.writeValueAsString(userDto), result);
+    }
+
+    @SneakyThrows
+    @Test
+    void deleteById_correctUser_thenReturnOk() {
+        long userId = 1L;
+        mockMvc.perform(delete("/users/{userId}", userId))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(userService).deleteById(userId);
+    }
+
+    @SneakyThrows
+    @Test
+    void deleteAll_thenReturnOk() {
+        mockMvc.perform(delete("/users"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        verify(userService).deleteAll();
+    }
+
+    @SneakyThrows
+    @Test
+    void createTest_emailAlreadyExist_thenReturnBadRequest() {
+        UserIncomeDto userIncomeDto = UserIncomeDto.builder()
+                .name("User")
+                .email("user@yandex.ru")
+                .build();
+
+        when(userService.create(any())).thenThrow(ConstraintViolationException.class);
+        mockMvc.perform(
+                        post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(userIncomeDto))
+                                .characterEncoding(StandardCharsets.UTF_8)
+                                .accept(MediaType.APPLICATION_JSON)
+                )
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
     }
 }

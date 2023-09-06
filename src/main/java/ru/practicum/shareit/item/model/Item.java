@@ -1,37 +1,31 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.*;
-import ru.practicum.shareit.request.model.Request;
+import lombok.Getter;
+import lombok.Setter;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @Table(name = "items")
-@NoArgsConstructor
+@Setter
+@Getter
 public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "item_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "item_name")
+    @Column(name = "name", length = 50, nullable = false)
     private String name;
-
-    @Column(name = "item_description")
+    @Column(name = "description", nullable = false)
     private String description;
-
-    @Column(name = "item_available")
-    private Boolean available;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "is_available")
+    private boolean isAvailable;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "owner_id")
     private User owner;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id")
-    private Request request;
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "target_request_id")
+    private ItemRequest itemRequest;
 }
