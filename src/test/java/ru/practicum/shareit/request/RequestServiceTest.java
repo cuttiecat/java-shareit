@@ -2,162 +2,113 @@ package ru.practicum.shareit.request;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.item.ItemRepository;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.util.UnionService;
+import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.exceptions.RequestExistException;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepositoryImpl;
+import ru.practicum.shareit.request.dto.ReceivedRequestDto;
+import ru.practicum.shareit.request.dto.ReturnRequestDto;
+import ru.practicum.shareit.request.model.Request;
+import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
+import ru.practicum.shareit.request.service.RequestServiceImpl;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
+import ru.practicum.shareit.utils.ShareItPageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class RequestServiceTest {
-
-    @Autowired
-    private ItemRequestService itemRequestService;
-
-    @MockBean
-    private ItemRequestRepository itemRequestRepository;
-
-    @MockBean
-    private ItemRepository itemRepository;
-
-    @MockBean
-    private UserRepository userRepository;
-
-    @MockBean
-    private UnionService unionService;
-
-
-    private User firstUser;
-    private User secondUser;
-    private ItemRequest firstItemRequest;
-    private ItemRequest secondItemRequest;
-    private ItemRequestDto itemRequestDto;
+    @Mock
+    private RequestRepositoryImpl requestRepository;
+    @Mock
+    private UserRepositoryImpl userRepository;
+    @Mock
+    private ItemRepositoryImpl itemRepository;
+    @InjectMocks
+    private RequestServiceImpl requestService;
+    private Request request;
+    private User user;
     private Item item;
 
     @BeforeEach
-    void beforeEach() {
-        firstUser = User.builder()
-                .id(1L)
-                .name("Anna")
-                .email("anna@yandex.ru")
-                .build();
-
-        secondUser = User.builder()
-                .id(2L)
-                .name("Tiana")
-                .email("tiana@yandex.ru")
-                .build();
-
-        firstItemRequest = ItemRequest.builder()
-                .id(1L)
-                .description("ItemRequest 1")
-                .created(LocalDateTime.now())
-                .build();
-
-        secondItemRequest = ItemRequest.builder()
-                .id(2L)
-                .description("ItemRequest 2")
-                .created(LocalDateTime.now())
-                .build();
-
-        item = Item.builder()
-                .id(1L)
-                .name("screwdriver")
-                .description("works well, does not ask to eat")
-                .available(true)
-                .owner(firstUser)
-                .request(firstItemRequest)
-                .build();
-
-        itemRequestDto = ItemRequestDto.builder().description("ItemRequest 1").build();
+    void setUp() {
+        user = new User(1L, "Пользователь 1", "email1@mail.ru");
+        request = new Request(1L, "Описание запроса 1", user, LocalDateTime.now());
+        User owner = new User(2L, "Пользователь 2", "email2@mail.ru");
+        item = new Item(1L, "Предмет 1", "Описание предмета 1", true, owner, request);
     }
 
     @Test
-    void addRequest() {
-        when(userRepository.existsById(anyLong())).thenReturn(true);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(firstUser));
-        when(itemRequestRepository.save(any(ItemRequest.class))).thenReturn(firstItemRequest);
-
-        ItemRequestDto itemRequestDtoTest = itemRequestService.addRequest(itemRequestDto, firstUser.getId());
-
-        assertEquals(itemRequestDtoTest.getId(), firstItemRequest.getId());
-        assertEquals(itemRequestDtoTest.getDescription(), firstItemRequest.getDescription());
-
-        verify(itemRequestRepository, times(1)).save(any(ItemRequest.class));
+    void shouldAddRequest() {
+        ReceivedRequestDto receivedRequestDto = new ReceivedRequestDto("Описание запроса 1");
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.save(any())).thenReturn(request);
+        ReturnRequestDto returnRequestDto = requestService.addRequest(receivedRequestDto, 1L);
+        assertNotNull(returnRequestDto);
+        assertEquals(1L, returnRequestDto.getId());
+        assertEquals("Описание запроса 1", returnRequestDto.getDescription());
+        verify(requestRepository, times(1)).save(any());
     }
 
     @Test
-    void getRequests() {
-        when(userRepository.existsById(anyLong())).thenReturn(true);
-        when(itemRequestRepository.findByRequesterIdOrderByCreatedAsc(anyLong())).thenReturn(List.of(firstItemRequest));
-        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
-
-        ItemRequestDto itemRequestDtoTest = itemRequestService.getRequests(firstUser.getId()).get(0);
-
-        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getName(), item.getName());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getDescription(), item.getDescription());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getAvailable(), item.getAvailable());
-
-        verify(itemRequestRepository, times(1)).findByRequesterIdOrderByCreatedAsc(anyLong());
+    void shouldGetOthersRequests() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findAllForUser(1L, new ShareItPageable(0, 20,
+                Sort.by("created").descending())))
+                .thenReturn(new PageImpl<>(List.of(request)));
+        when(itemRepository.findAllByRequestsId(List.of(1L))).thenReturn(List.of(item));
+        List<ReturnRequestDto> requestDtoList = requestService.getOthersRequests(0, 20, 1L);
+        assertEquals(1, requestDtoList.size());
+        assertEquals(1L, requestDtoList.get(0).getId());
+        assertEquals("Описание запроса 1", requestDtoList.get(0).getDescription());
+        verify(itemRepository, times(1)).findAllByRequestsId(any());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(requestRepository, times(1)).findAllForUser(anyLong(), any());
     }
 
     @Test
-    void getAllRequests() {
-        when(unionService.checkPageSize(anyInt(), anyInt())).thenReturn(PageRequest.of(5 / 10,10));
-        when(itemRequestRepository.findByIdIsNotOrderByCreatedAsc(anyLong(), any(PageRequest.class))).thenReturn(new PageImpl<>(List.of(firstItemRequest)));
-        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
-
-        ItemRequestDto itemRequestDtoTest = itemRequestService.getAllRequests(firstUser.getId(), 5, 10).get(0);
-
-        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getName(), item.getName());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getDescription(), item.getDescription());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getAvailable(), item.getAvailable());
-
-        verify(itemRequestRepository, times(1)).findByIdIsNotOrderByCreatedAsc(anyLong(),any(PageRequest.class));
+    void shouldGetRequest() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findById(anyLong())).thenReturn(Optional.of(request));
+        when(itemRepository.findAllByRequestsId(any())).thenReturn(List.of(item));
+        ReturnRequestDto returnRequestDto = requestService.getRequest(1L, 2L);
+        assertNotNull(returnRequestDto);
+        assertEquals(1L, returnRequestDto.getId());
+        assertEquals("Описание запроса 1", returnRequestDto.getDescription());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(requestRepository, times(1)).findById(anyLong());
+        verify(itemRepository, times(1)).findAllByRequestsId(any());
     }
 
     @Test
-    void getRequestById() {
-        when(userRepository.existsById(anyLong())).thenReturn(true);
-        when(itemRequestRepository.existsById(anyLong())).thenReturn(true);
-        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.ofNullable(firstItemRequest));
-        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
-
-
-        ItemRequestDto itemRequestDtoTest = itemRequestService.getRequestById(firstUser.getId(), firstItemRequest.getId());
-
-        assertEquals(itemRequestDtoTest.getId(), firstItemRequest.getId());
-        assertEquals(itemRequestDtoTest.getDescription(), firstItemRequest.getDescription());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getRequestId(), firstUser.getId());
-
-        verify(itemRequestRepository, times(1)).findById(anyLong());
+    void shouldGetUserRequests() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findRequestsByRequestorId(1L)).thenReturn(List.of(request));
+        when(itemRepository.findAllByRequestsId(any())).thenReturn(List.of(item));
+        List<ReturnRequestDto> requestDtoList = requestService.getUserRequests(1L);
+        assertEquals(1, requestDtoList.size());
+        assertEquals(1L, requestDtoList.get(0).getId());
+        assertEquals("Описание запроса 1", requestDtoList.get(0).getDescription());
+        verify(userRepository, times(1)).findById(anyLong());
+        verify(requestRepository, times(1)).findRequestsByRequestorId(anyLong());
+        verify(itemRepository, times(1)).findAllByRequestsId(any());
     }
 
     @Test
-    void addItemsToRequest() {
-        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
-
-        ItemRequestDto itemRequestDtoTest = itemRequestService.addItemsToRequest(firstItemRequest);
-
-        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
-        assertEquals(itemRequestDtoTest.getItems().get(0).getRequestId(), firstUser.getId());
-
-        verify(itemRepository, times(1)).findByRequestId(anyLong());
+    void checkExistException() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+        when(requestRepository.findById(anyLong())).thenReturn(Optional.empty());
+        assertThrows(RequestExistException.class, () -> requestService.getRequest(50L, 1L));
     }
 }

@@ -1,25 +1,25 @@
 package ru.practicum.shareit.user.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import ru.practicum.shareit.item.dto.CommentDto;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import java.util.List;
 
-
-@Data
-@Builder
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDto {
-
     private Long id;
-
-    @NotNull(message = "Login cannot be empty or contain spaces.")
-    @NotBlank(message = "Login cannot be empty or contain spaces.")
+    @NotBlank
     private String name;
-
-    @NotNull(message = "Email cannot be empty")
-    @NotBlank(message = "Email cannot be empty")
-    @Email(message = "Email must contain the character @")
+    @Email
+    @NotBlank
     private String email;
+    private List<CommentDto> comments;
 }

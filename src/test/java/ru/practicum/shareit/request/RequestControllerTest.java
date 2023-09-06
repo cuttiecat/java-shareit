@@ -1,121 +1,110 @@
 package ru.practicum.shareit.request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.request.dto.ItemRequestDto;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.request.controller.RequestController;
+import ru.practicum.shareit.request.dto.ReceivedRequestDto;
+import ru.practicum.shareit.request.dto.ReturnRequestDto;
+import ru.practicum.shareit.request.service.RequestServiceImpl;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ru.practicum.shareit.util.Constant.HEADER_USER;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = ItemRequestController.class)
+@ExtendWith(MockitoExtension.class)
 public class RequestControllerTest {
-
-    @MockBean
-    private ItemRequestService itemRequestService;
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
+    @Mock
+    private RequestServiceImpl requestService;
+    @InjectMocks
+    private RequestController requestController;
+    private static final String USER_HEADER = "X-Sharer-User-Id";
+    private final ObjectMapper mapper = new ObjectMapper();
     private MockMvc mvc;
-
-    private ItemRequestDto firstItemRequestDto;
-
-    private ItemRequestDto secondItemRequestDto;
+    private ReceivedRequestDto receivedRequestDto;
+    private ReturnRequestDto returnRequestDto;
 
     @BeforeEach
-    void beforeEach() {
-
-        firstItemRequestDto = ItemRequestDto.builder()
-                .id(1L)
-                .description("ItemRequest 1")
-                .created(LocalDateTime.now())
+    void setUp() {
+        mvc = MockMvcBuilders
+                .standaloneSetup(requestController)
                 .build();
-
-        secondItemRequestDto = ItemRequestDto.builder()
-                .id(2L)
-                .description("ItemRequest 2")
-                .created(LocalDateTime.now())
-                .build();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        receivedRequestDto = new ReceivedRequestDto("Описание запроса 1");
+        returnRequestDto = new ReturnRequestDto(1L, "Описание запроса 1", List.of(), LocalDateTime.now());
     }
 
     @Test
-    void addRequest() throws Exception {
-        when(itemRequestService.addRequest(any(ItemRequestDto.class), anyLong())).thenReturn(firstItemRequestDto);
-
+    void shouldAddRequest() throws Exception {
+        when(requestService.addRequest(any(), anyLong())).thenReturn(returnRequestDto);
         mvc.perform(post("/requests")
-                        .content(mapper.writeValueAsString(firstItemRequestDto))
+                        .content(mapper.writeValueAsString(receivedRequestDto))
+                        .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstItemRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.description", is(firstItemRequestDto.getDescription()), String.class));
-
-        verify(itemRequestService, times(1)).addRequest(firstItemRequestDto, 1L);
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.description", is("Описание запроса 1")))
+                .andExpect(jsonPath("$.created", is(notNullValue())));
     }
 
     @Test
-    void getRequests() throws Exception {
-        when(itemRequestService.getRequests(anyLong())).thenReturn(List.of(firstItemRequestDto, secondItemRequestDto));
+    void shouldGetOthersRequests() throws Exception {
+        when(requestService.getOthersRequests(0, 5, 1L)).thenReturn(List.of(returnRequestDto));
+        mvc.perform(get("/requests/all?from=0&size=5")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса 1")))
+                .andExpect(jsonPath("$[*].created", containsInAnyOrder(notNullValue())));
+    }
 
+    @Test
+    void shouldGetRequest() throws Exception {
+        when(requestService.getRequest(1L, 1L)).thenReturn(returnRequestDto);
+        mvc.perform(get("/requests/1")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.description", is("Описание запроса 1")))
+                .andExpect(jsonPath("$.created", is(notNullValue())));
+    }
+
+    @Test
+    void shouldGetUserRequests() throws Exception {
+        when(requestService.getUserRequests(1L)).thenReturn(List.of(returnRequestDto));
         mvc.perform(get("/requests")
+                        .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstItemRequestDto, secondItemRequestDto))));
-
-        verify(itemRequestService, times(1)).getRequests(1L);
-    }
-
-    @Test
-    void getAllRequests() throws Exception {
-        when(itemRequestService.getAllRequests(anyLong(), anyInt(), anyInt())).thenReturn(List.of(firstItemRequestDto, secondItemRequestDto));
-
-        mvc.perform(get("/requests/all")
-                        .param("from", String.valueOf(0))
-                        .param("size", String.valueOf(10))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstItemRequestDto, secondItemRequestDto))));
-
-        verify(itemRequestService, times(1)).getAllRequests(1L, 0, 10);
-    }
-
-    @Test
-    void getRequestById() throws Exception {
-        when(itemRequestService.getRequestById(anyLong(), anyLong())).thenReturn(firstItemRequestDto);
-
-        mvc.perform(get("/requests/{requestId}", firstItemRequestDto.getId())
-                        .content(mapper.writeValueAsString(firstItemRequestDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstItemRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.description", is(firstItemRequestDto.getDescription()), String.class));
-
-        verify(itemRequestService, times(1)).getRequestById(1L, 1L);
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание запроса 1")))
+                .andExpect(jsonPath("$[*].created", containsInAnyOrder(notNullValue())));
     }
 }

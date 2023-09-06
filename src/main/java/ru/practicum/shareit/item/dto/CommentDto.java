@@ -1,23 +1,19 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Data
-@Builder
+@Setter
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
 public class CommentDto {
-
-    public Long id;
-
-    @NotNull(message = "text cannot be empty.")
-    @NotBlank(message = "text cannot be empty.")
+    private Long id;
+    @NotBlank
     private String text;
-
-    private LocalDateTime created;
-
     private String authorName;
+    private LocalDateTime created;
 }

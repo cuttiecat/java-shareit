@@ -1,178 +1,142 @@
 package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingOutDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.user.dto.UserDto;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.booking.bookingUtils.BookingState;
+import ru.practicum.shareit.booking.bookingUtils.BookingStatus;
+import ru.practicum.shareit.booking.controller.BookingController;
+import ru.practicum.shareit.booking.dto.ReceivedBookingDto;
+import ru.practicum.shareit.booking.dto.ReturnBookingDto;
+import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.item.dto.ItemBookingDto;
+import ru.practicum.shareit.user.dto.UserDtoBooking;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ru.practicum.shareit.util.Constant.HEADER_USER;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = BookingController.class)
+@ExtendWith(MockitoExtension.class)
 public class BookingControllerTest {
-
-    @MockBean
+    @Mock
     private BookingService bookingService;
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
+    @InjectMocks
+    private BookingController bookingController;
+    private static final String USER_HEADER = "X-Sharer-User-Id";
+    private final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     private MockMvc mvc;
-
-    private ItemDto itemDto;
-
-    private UserDto user;
-
-    private BookingDto bookingDto;
-
-    private BookingOutDto firstBookingOutDto;
-
-    private BookingOutDto secondBookingOutDto;
-
+    private ReceivedBookingDto receivedBookingDto;
+    private ReturnBookingDto returnBookingDto;
 
     @BeforeEach
-    void beforeEach() {
-
-        user = UserDto.builder()
-                .id(1L)
-                .name("Anna")
-                .email("anna@yandex.ru")
+    void setUp() {
+        mvc = MockMvcBuilders
+                .standaloneSetup(bookingController)
                 .build();
-
-        itemDto = ItemDto.builder()
-                .requestId(1L)
-                .name("screwdriver")
-                .description("works well, does not ask to eat")
-                .available(true)
-                .build();
-
-        bookingDto = BookingDto.builder()
-                .itemId(1L)
-                .start(LocalDateTime.of(2023, 8, 4, 0, 0))
-                .end(LocalDateTime.of(2023, 8, 4, 12, 0))
-                .build();
-
-        firstBookingOutDto = BookingOutDto.builder()
-                .id(1L)
-                .start(LocalDateTime.of(2023, 8, 4, 0, 0))
-                .end(LocalDateTime.of(2023, 8, 4, 12, 0))
-                .item(itemDto)
-                .booker(user)
-                .status(Status.APPROVED)
-                .build();
-
-        secondBookingOutDto = BookingOutDto.builder()
-                .id(2L)
-                .start(LocalDateTime.of(2023, 8, 4, 14, 0))
-                .end(LocalDateTime.of(2023, 8, 4, 16, 0))
-                .item(itemDto)
-                .booker(user)
-                .status(Status.APPROVED)
-                .build();
+        LocalDateTime start = LocalDateTime.now().plusHours(1);
+        LocalDateTime end = start.plusHours(1);
+        receivedBookingDto = new ReceivedBookingDto(1L, start, end);
+        returnBookingDto = new ReturnBookingDto(1L, start, end, BookingStatus.WAITING,
+                new UserDtoBooking(1L, "Пользователь 1"), new ItemBookingDto(1L, "Предмет 1"));
     }
 
     @Test
-    void addBooking() throws Exception {
-        when(bookingService.addBooking(any(BookingDto.class), anyLong())).thenReturn(firstBookingOutDto);
-
+    void shouldAddBooking() throws Exception {
+        when(bookingService.addBooking(any(), anyLong())).thenReturn(returnBookingDto);
         mvc.perform(post("/bookings")
-                        .content(mapper.writeValueAsString(bookingDto))
+                        .content(mapper.writeValueAsString(receivedBookingDto))
+                        .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstBookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.status", is(firstBookingOutDto.getStatus().toString()), Status.class))
-                .andExpect(jsonPath("$.booker.id", is(firstBookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(firstBookingOutDto.getItem().getId()), Long.class));
-
-        verify(bookingService, times(1)).addBooking(bookingDto, 1L);
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.start", is(notNullValue())))
+                .andExpect(jsonPath("$.end", is(notNullValue())))
+                .andExpect(jsonPath("$.status", is(BookingStatus.WAITING.toString())));
     }
 
     @Test
-    void approveBooking() throws Exception {
-        when(bookingService.approveBooking(anyLong(),anyLong(), anyBoolean())).thenReturn(firstBookingOutDto);
-
-        mvc.perform(patch("/bookings/{bookingId}", 1L)
+    void shouldSetBookingStatus() throws Exception {
+        returnBookingDto.setStatus(BookingStatus.APPROVED);
+        when(bookingService.setBookingStatus(anyLong(), anyBoolean(), anyLong()))
+                .thenReturn(returnBookingDto);
+        mvc.perform(patch("/bookings/1")
                         .param("approved", "true")
+                        .header(USER_HEADER, 2L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.start", is(notNullValue())))
+                .andExpect(jsonPath("$.end", is(notNullValue())))
+                .andExpect(jsonPath("$.status", is(BookingStatus.APPROVED.toString())));
+    }
+
+    @Test
+    void shouldGetBooking() throws Exception {
+        when(bookingService.getBooking(anyLong(), anyLong()))
+                .thenReturn(returnBookingDto);
+        mvc.perform(get("/bookings/1")
+                        .header(USER_HEADER, 1L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.start", is(notNullValue())))
+                .andExpect(jsonPath("$.end", is(notNullValue())))
+                .andExpect(jsonPath("$.status", is(BookingStatus.WAITING.toString())));
+    }
+
+    @Test
+    void shouldGetOwnerBookings() throws Exception {
+        returnBookingDto.setStatus(BookingStatus.APPROVED);
+        when(bookingService.getOwnerBookings(BookingState.ALL, 0, 5, 2L))
+                .thenReturn(List.of(returnBookingDto));
+        mvc.perform(get("/bookings/owner?from=0&size=5&state={state}", BookingState.ALL)
+                        .content("")
+                        .header(USER_HEADER, 2L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstBookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.status", is(firstBookingOutDto.getStatus().toString()), Status.class))
-                .andExpect(jsonPath("$.booker.id", is(firstBookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(firstBookingOutDto.getItem().getId()), Long.class));
-
-        verify(bookingService, times(1)).approveBooking(1L, 1L, true);
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].start", containsInAnyOrder(notNullValue())))
+                .andExpect(jsonPath("$[*].end", containsInAnyOrder(notNullValue())))
+                .andExpect(jsonPath("$[*].status", containsInAnyOrder(BookingStatus.APPROVED
+                        .toString())));
     }
 
     @Test
-    void getBookingById() throws Exception {
-        when(bookingService.getBookingById(anyLong(),anyLong())).thenReturn(firstBookingOutDto);
-
-        mvc.perform(get("/bookings/{bookingId}", 1L)
+    void shouldGetBookerBookings() throws Exception {
+        returnBookingDto.setStatus(BookingStatus.APPROVED);
+        when(bookingService.getBookerBookings(BookingState.CURRENT, 0, 15, 2L))
+                .thenReturn(List.of(returnBookingDto));
+        mvc.perform(get("/bookings?from=0&size=15&state={state}", BookingState.CURRENT)
+                        .content("")
+                        .header(USER_HEADER, 2L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstBookingOutDto.getId()), Long.class))
-                .andExpect(jsonPath("$.status", is(firstBookingOutDto.getStatus().toString()), Status.class))
-                .andExpect(jsonPath("$.booker.id", is(firstBookingOutDto.getBooker().getId()), Long.class))
-                .andExpect(jsonPath("$.item.id", is(firstBookingOutDto.getItem().getId()), Long.class));
-
-        verify(bookingService, times(1)).getBookingById(1L, 1L);
-    }
-
-    @Test
-    void getAllBookingsByBookerId() throws Exception {
-        when(bookingService.getAllBookingsByBookerId(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(firstBookingOutDto, secondBookingOutDto));
-
-        mvc.perform(get("/bookings")
-                        .param("state", "ALL")
-                        .param("from", String.valueOf(0))
-                        .param("size", String.valueOf(10))
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstBookingOutDto, secondBookingOutDto))));
-
-        verify(bookingService, times(1)).getAllBookingsByBookerId(1L, "ALL", 0, 10);
-    }
-
-    @Test
-    void getAllBookingsForAllItemsByOwnerId() throws Exception {
-        when(bookingService.getAllBookingsForAllItemsByOwnerId(anyLong(), anyString(), anyInt(), anyInt())).thenReturn(List.of(firstBookingOutDto, secondBookingOutDto));
-
-        mvc.perform(get("/bookings/owner")
-                        .param("state", "ALL")
-                        .param("from", String.valueOf(0))
-                        .param("size", String.valueOf(10))
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstBookingOutDto, secondBookingOutDto))));
-
-        verify(bookingService, times(1)).getAllBookingsForAllItemsByOwnerId(1L, "ALL", 0, 10);
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].start", containsInAnyOrder(notNullValue())))
+                .andExpect(jsonPath("$[*].end", containsInAnyOrder(notNullValue())))
+                .andExpect(jsonPath("$[*].status", containsInAnyOrder(BookingStatus.APPROVED
+                        .toString())));
     }
 }
-
-

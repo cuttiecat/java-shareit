@@ -1,201 +1,168 @@
 package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.booking.dto.BookingItemDto;
+import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.item.service.ItemService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static ru.practicum.shareit.util.Constant.HEADER_USER;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = ItemController.class)
+@ExtendWith(MockitoExtension.class)
 public class ItemControllerTest {
-
-    @MockBean
+    @Mock
     private ItemService itemService;
-
-    @Autowired
-    private ObjectMapper mapper;
-
-    @Autowired
+    @InjectMocks
+    private ItemController itemController;
+    private static final String USER_HEADER = "X-Sharer-User-Id";
+    private final ObjectMapper mapper = new ObjectMapper();
     private MockMvc mvc;
-
-    private ItemDto firstitemDto;
-
-    private ItemDto secondItemDto;
-
-    private CommentDto commentDto;
-
-    private ItemRequest itemRequest;
-
-    private User user;
+    private ItemDto receivedItemDto;
+    private ItemDto returnItemDto;
 
     @BeforeEach
-    void beforeEach() {
-
-        user = User.builder()
-                .id(1L)
-                .name("Anna")
-                .email("anna@yandex.ru")
+    void setUp() {
+        mvc = MockMvcBuilders
+                .standaloneSetup(itemController)
                 .build();
-
-        itemRequest = ItemRequest.builder()
-                .id(1L)
-                .description("Anna")
-                .requester(user)
-                .created(LocalDateTime.now())
-                .build();
-
-        commentDto = CommentDto.builder()
-                .id(1L)
-                .text("acceptable")
-                .created(LocalDateTime.now())
-                .authorName("ALex")
-                .build();
-
-        firstitemDto = ItemDto.builder()
-                .id(1L)
-                .name("screwdriver")
-                .description("works well, does not ask to eat")
-                .available(true)
-                .comments(List.of(commentDto))
-                .requestId(itemRequest.getId())
-                .build();
-
-        secondItemDto = ItemDto.builder()
-                .id(1L)
-                .name("guitar")
-                .description("a very good tool")
-                .available(true)
-                .comments(Collections.emptyList())
-                .requestId(itemRequest.getId())
-                .build();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        BookingItemDto bookingItemDto = new BookingItemDto(null, null, null);
+        receivedItemDto = new ItemDto(null, "Предмет 1", "Описание предмета 1", true,
+                List.of(), bookingItemDto, bookingItemDto, 1L);
+        returnItemDto = receivedItemDto;
+        returnItemDto.setId(1L);
     }
 
     @Test
-    void addItem() throws Exception {
-        when(itemService.addItem(anyLong(), any(ItemDto.class))).thenReturn(firstitemDto);
-
+    void shouldAddItem() throws Exception {
+        when(itemService.addItem(receivedItemDto, 1L)).thenReturn(returnItemDto);
         mvc.perform(post("/items")
-                        .content(mapper.writeValueAsString(firstitemDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstitemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(firstitemDto.getName()), String.class))
-                .andExpect(jsonPath("$.description", is(firstitemDto.getDescription()), String.class))
-                .andExpect(jsonPath("$.available", is(firstitemDto.getAvailable()), Boolean.class))
-                .andExpect(jsonPath("$.requestId", is(firstitemDto.getRequestId()), Long.class));
-
-        verify(itemService, times(1)).addItem(1L, firstitemDto);
-    }
-
-    @Test
-    void updateItem() throws Exception {
-        when(itemService.updateItem(any(ItemDto.class), anyLong(), anyLong())).thenReturn(firstitemDto);
-
-        mvc.perform(patch("/items/{itemId}", 1L)
-                        .content(mapper.writeValueAsString(firstitemDto))
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstitemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(firstitemDto.getName()), String.class))
-                .andExpect(jsonPath("$.description", is(firstitemDto.getDescription()), String.class))
-                .andExpect(jsonPath("$.available", is(firstitemDto.getAvailable()), Boolean.class))
-                .andExpect(jsonPath("$.requestId", is(firstitemDto.getRequestId()), Long.class));
-
-        verify(itemService, times(1)).updateItem(firstitemDto, 1L, 1L);
-    }
-
-    @Test
-    void getItemById() throws Exception {
-        when(itemService.getItemById(anyLong(), anyLong())).thenReturn(firstitemDto);
-
-        mvc.perform(get("/items/{itemId}", 1L)
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", is(firstitemDto.getId()), Long.class))
-                .andExpect(jsonPath("$.name", is(firstitemDto.getName()), String.class))
-                .andExpect(jsonPath("$.description", is(firstitemDto.getDescription()), String.class))
-                .andExpect(jsonPath("$.available", is(firstitemDto.getAvailable()), Boolean.class))
-                .andExpect(jsonPath("$.requestId", is(firstitemDto.getRequestId()), Long.class));
-
-        verify(itemService, times(1)).getItemById(1L, 1L);
-    }
-
-    @Test
-    void getAllItemsUser() throws Exception {
-
-        when(itemService.getItemsUser(anyLong(), anyInt(), anyInt())).thenReturn(List.of(firstitemDto, secondItemDto));
-
-        mvc.perform(get("/items")
-                        .param("from", "0")
-                        .param("size", "10")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstitemDto, secondItemDto))));
-
-        verify(itemService, times(1)).getItemsUser(1L, 0, 10);
-    }
-
-    @Test
-    void getSearchItem() throws Exception {
-        when(itemService.searchItem(anyString(), anyInt(), anyInt())).thenReturn(List.of(firstitemDto, secondItemDto));
-
-        mvc.perform(get("/items/search")
-                        .param("text", "text")
-                        .param("from", "0")
-                        .param("size", "10")
+                        .content(mapper.writeValueAsString(receivedItemDto))
+                        .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(List.of(firstitemDto, secondItemDto))));
-
-        verify(itemService, times(1)).searchItem("text", 0, 10);
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("Предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
+                .andExpect(jsonPath("$.available", is(true)))
+                .andExpect(jsonPath("$.requestId", is(1)));
     }
 
     @Test
-    void addComment() throws Exception {
-        when(itemService.addComment(anyLong(), anyLong(), any(CommentDto.class))).thenReturn(commentDto);
-
-        mvc.perform(post("/items/{itemId}/comment", 1L)
-                        .content(mapper.writeValueAsString(commentDto))
+    void shouldUpdateItem() throws Exception {
+        returnItemDto.setName("Новый предмет 1");
+        when(itemService.updateItem(1L, returnItemDto, 1L)).thenReturn(returnItemDto);
+        mvc.perform(patch("/items/1")
+                        .content(mapper.writeValueAsString(returnItemDto))
+                        .header(USER_HEADER, 1L)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header(HEADER_USER, 1L))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(commentDto)));
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("Новый предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
+                .andExpect(jsonPath("$.available", is(true)))
+                .andExpect(jsonPath("$.requestId", is(1)));
+    }
 
-        verify(itemService, times(1)).addComment(1L, 1L, commentDto);
+    @Test
+    void shouldDeleteItem() throws Exception {
+        mvc.perform(delete("/items/1")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldGetItem() throws Exception {
+        when(itemService.getItem(anyLong(), anyLong())).thenReturn(returnItemDto);
+        mvc.perform(get("/items/1")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is("Предмет 1")))
+                .andExpect(jsonPath("$.description", is("Описание предмета 1")))
+                .andExpect(jsonPath("$.available", is(true)))
+                .andExpect(jsonPath("$.requestId", is(1)));
+    }
+
+    @Test
+    void shouldGetItemsByName() throws Exception {
+        when(itemService.getItemsByName("редмет", 0, 2)).thenReturn(List.of(returnItemDto));
+        mvc.perform(get("/items/search?from=0&size=2&text={text}", "редмет")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
+                .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
+                .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
+    }
+
+    @Test
+    void shouldGetItemsByOwner() throws Exception {
+        when(itemService.getItemsByOwner(1L, 0, 7)).thenReturn(List.of(returnItemDto));
+        mvc.perform(get("/items?from=0&size=7")
+                        .header(USER_HEADER, 1L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", containsInAnyOrder(1)))
+                .andExpect(jsonPath("$[*].name", containsInAnyOrder("Предмет 1")))
+                .andExpect(jsonPath("$[*].description", containsInAnyOrder("Описание предмета 1")))
+                .andExpect(jsonPath("$[*].available", containsInAnyOrder(true)))
+                .andExpect(jsonPath("$[*].requestId", containsInAnyOrder(1)));
+    }
+
+    @Test
+    void shouldAddCommentToItem() throws Exception {
+        CommentDto receivedCommentDto =
+                new CommentDto(null, "Коммент к предмету 1", "Пользователь 1", LocalDateTime.now());
+        receivedCommentDto.setId(1L);
+        when(itemService.addCommentToItem(1L, receivedCommentDto, 2L)).thenReturn(receivedCommentDto);
+        mvc.perform(post("/items/1/comment")
+                        .content(mapper.writeValueAsString(receivedCommentDto))
+                        .header(USER_HEADER, 2L)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.created", is(notNullValue())))
+                .andExpect(jsonPath("$.text", is("Коммент к предмету 1")));
     }
 }
