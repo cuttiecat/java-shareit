@@ -1,22 +1,39 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
-import ru.practicum.shareit.user.dto.UserDto;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 
 import java.util.List;
 
-@Builder(toBuilder = true)
-@Getter
+
+
+@Data
+@Builder
 public class ItemDto {
+
     private Long id;
-    private final String name;
-    private final String description;
-    private final Boolean available;
-    private final UserDto owner;
-    private final BookingShortDto lastBooking;
-    private final BookingShortDto nextBooking;
-    private final List<CommentDto> comments;
-    private final Long requestId;
+
+    @NotNull(message = "Name cannot be empty or contain spaces.")
+    @NotBlank(message = "Name cannot be empty or contain spaces.")
+    private String name;
+
+    @NotNull(message = "Description cannot be empty")
+    @NotBlank(message = "Description cannot be blank")
+    private String description;
+
+    @NotNull(message = "Available cannot be empty")
+    private Boolean available;
+
+    private BookingShortDto lastBooking;
+
+    private BookingShortDto nextBooking;
+
+    private List<CommentDto> comments;
+
+    @Positive(message = "must be positive")
+    private Long requestId;
 }

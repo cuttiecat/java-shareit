@@ -1,38 +1,29 @@
 package ru.practicum.shareit.booking.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import ru.practicum.shareit.booking.model.BookingStatus;
+import lombok.Data;
+import ru.practicum.shareit.booking.Status;
 
+import javax.validation.constraints.Future;
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
-@Builder(toBuilder = true)
-@Getter
+
+
+@Data
+@Builder
 public class BookingDto {
-    private final Long id;
-    private final LocalDateTime start;
-    private final LocalDateTime end;
-    private final ShortItemDto item;
-    private final ShortBookerDto booker;
-    private BookingStatus status;
 
-    @RequiredArgsConstructor
-    @Getter
-    public static class ShortBookerDto {
-        @JsonProperty(value = "id")
-        private final long bookerId;
-        @JsonProperty(value = "name")
-        private final String bookerName;
-    }
+    private Long itemId;
 
-    @RequiredArgsConstructor
-    @Getter
-    public static class ShortItemDto {
-        @JsonProperty(value = "id")
-        private final long itemId;
-        @JsonProperty(value = "name")
-        private final String itemName;
-    }
+    @NotNull(message = "start cannot be empty.")
+    @FutureOrPresent(message = "start may be in the present or future")
+    private LocalDateTime start;
+
+    @NotNull(message = "end cannot be empty.")
+    @Future(message = "end may be in the future")
+    private LocalDateTime end;
+
+    private Status status;
 }

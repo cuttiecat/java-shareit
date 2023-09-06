@@ -1,126 +1,163 @@
 package ru.practicum.shareit.request;
 
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
-import ru.practicum.shareit.request.dto.ItemRequestIncomeDto;
-import ru.practicum.shareit.request.dto.ItemRequestLongDto;
+import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserRepository;
+import ru.practicum.shareit.util.UnionService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
-class RequestServiceTest {
-    private final RequestService requestService;
+public class RequestServiceTest {
 
-    @Test
-    @Order(0)
-    @Sql(value = { "/test-schema.sql", "/users-create-test.sql" })
-    void createTest() {
-        long userId = 1L;
-        ItemRequestIncomeDto incomeDto = ItemRequestIncomeDto.builder()
-                .description("text")
+    @Autowired
+    private ItemRequestService itemRequestService;
+
+    @MockBean
+    private ItemRequestRepository itemRequestRepository;
+
+    @MockBean
+    private ItemRepository itemRepository;
+
+    @MockBean
+    private UserRepository userRepository;
+
+    @MockBean
+    private UnionService unionService;
+
+
+    private User firstUser;
+    private User secondUser;
+    private ItemRequest firstItemRequest;
+    private ItemRequest secondItemRequest;
+    private ItemRequestDto itemRequestDto;
+    private Item item;
+
+    @BeforeEach
+    void beforeEach() {
+        firstUser = User.builder()
+                .id(1L)
+                .name("Anna")
+                .email("anna@yandex.ru")
                 .build();
 
-        Optional<ItemRequestDto> itemRequestDto = Optional.of(requestService.create(incomeDto, userId));
+        secondUser = User.builder()
+                .id(2L)
+                .name("Tiana")
+                .email("tiana@yandex.ru")
+                .build();
 
-        assertThat(itemRequestDto)
-                .isPresent()
-                .hasValueSatisfying(i -> {
-                    assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
-                    assertThat(i).hasFieldOrPropertyWithValue("description", "text");
-                    assertThat(i).hasFieldOrProperty("created");
-                    assertThat(i.getCreated()).isNotNull();
-                    assertThat(i).hasFieldOrProperty("requestor");
-                    assertThat(i.getRequestor()).hasFieldOrPropertyWithValue("requestorId", 1L);
-                    assertThat(i.getRequestor()).hasFieldOrPropertyWithValue("requestorName", "name");
-                });
+        firstItemRequest = ItemRequest.builder()
+                .id(1L)
+                .description("ItemRequest 1")
+                .created(LocalDateTime.now())
+                .build();
+
+        secondItemRequest = ItemRequest.builder()
+                .id(2L)
+                .description("ItemRequest 2")
+                .created(LocalDateTime.now())
+                .build();
+
+        item = Item.builder()
+                .id(1L)
+                .name("screwdriver")
+                .description("works well, does not ask to eat")
+                .available(true)
+                .owner(firstUser)
+                .request(firstItemRequest)
+                .build();
+
+        itemRequestDto = ItemRequestDto.builder().description("ItemRequest 1").build();
     }
 
     @Test
-    @Order(1)
-    @Sql(value = { "/item-for-request-create-test.sql" })
-    void getById() {
-        long requestId = 1L;
-        long userId = 1L;
+    void addRequest() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(firstUser));
+        when(itemRequestRepository.save(any(ItemRequest.class))).thenReturn(firstItemRequest);
 
-        Optional<ItemRequestLongDto> dto = Optional.of(requestService.getById(requestId, userId));
+        ItemRequestDto itemRequestDtoTest = itemRequestService.addRequest(itemRequestDto, firstUser.getId());
 
-        assertThat(dto)
-                .isPresent()
-                .hasValueSatisfying(i -> {
-                    assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
-                    assertThat(i).hasFieldOrPropertyWithValue("description", "text");
-                    assertThat(i).hasFieldOrProperty("created");
-                    assertThat(i.getCreated()).isNotNull();
-                    assertThat(i).hasFieldOrProperty("items");
-                    assertThat(i.getItems()).hasSize(5);
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("itemId", 1L);
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("itemName", "item1");
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("description", "description1");
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("available", true);
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("requestId", 1L);
-                });
+        assertEquals(itemRequestDtoTest.getId(), firstItemRequest.getId());
+        assertEquals(itemRequestDtoTest.getDescription(), firstItemRequest.getDescription());
+
+        verify(itemRequestRepository, times(1)).save(any(ItemRequest.class));
     }
 
     @Test
-    @Order(2)
-    void getForOwner() {
-        long userId = 1L;
+    void getRequests() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(itemRequestRepository.findByRequesterIdOrderByCreatedAsc(anyLong())).thenReturn(List.of(firstItemRequest));
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
 
-        List<ItemRequestLongDto> dtos = requestService.getForOwner(userId);
-        Optional<ItemRequestLongDto> dto = Optional.of(dtos.get(0));
+        ItemRequestDto itemRequestDtoTest = itemRequestService.getRequests(firstUser.getId()).get(0);
 
-        assertThat(dtos)
-                .hasSize(1);
-        assertThat(dto)
-                .isPresent()
-                .hasValueSatisfying(i -> {
-                    assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
-                    assertThat(i).hasFieldOrPropertyWithValue("description", "text");
-                    assertThat(i).hasFieldOrProperty("created");
-                    assertThat(i.getCreated()).isNotNull();
-                    assertThat(i).hasFieldOrProperty("items");
-                    assertThat(i.getItems()).hasSize(5);
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("itemId", 1L);
-                });
+        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getName(), item.getName());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getDescription(), item.getDescription());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getAvailable(), item.getAvailable());
+
+        verify(itemRequestRepository, times(1)).findByRequesterIdOrderByCreatedAsc(anyLong());
     }
 
     @Test
-    @Order(3)
-    void getAll() {
-        long userId = 2L;
-        int from = 0;
-        int size = 10;
+    void getAllRequests() {
+        when(unionService.checkPageSize(anyInt(), anyInt())).thenReturn(PageRequest.of(5 / 10,10));
+        when(itemRequestRepository.findByIdIsNotOrderByCreatedAsc(anyLong(), any(PageRequest.class))).thenReturn(new PageImpl<>(List.of(firstItemRequest)));
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
 
-        List<ItemRequestLongDto> dtos = requestService.getAll(from, size, userId);
-        Optional<ItemRequestLongDto> dto = Optional.of(dtos.get(0));
+        ItemRequestDto itemRequestDtoTest = itemRequestService.getAllRequests(firstUser.getId(), 5, 10).get(0);
 
-        assertThat(dtos)
-                .hasSize(1);
-        assertThat(dto)
-                .isPresent()
-                .hasValueSatisfying(i -> {
-                    assertThat(i).hasFieldOrPropertyWithValue("id", 1L);
-                    assertThat(i).hasFieldOrPropertyWithValue("description", "text");
-                    assertThat(i).hasFieldOrProperty("created");
-                    assertThat(i.getCreated()).isNotNull();
-                    assertThat(i).hasFieldOrProperty("items");
-                    assertThat(i.getItems()).hasSize(5);
-                    assertThat(i.getItems().get(0)).hasFieldOrPropertyWithValue("itemId", 1L);
-                });
+        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getName(), item.getName());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getDescription(), item.getDescription());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getAvailable(), item.getAvailable());
+
+        verify(itemRequestRepository, times(1)).findByIdIsNotOrderByCreatedAsc(anyLong(),any(PageRequest.class));
+    }
+
+    @Test
+    void getRequestById() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(itemRequestRepository.existsById(anyLong())).thenReturn(true);
+        when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.ofNullable(firstItemRequest));
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
+
+
+        ItemRequestDto itemRequestDtoTest = itemRequestService.getRequestById(firstUser.getId(), firstItemRequest.getId());
+
+        assertEquals(itemRequestDtoTest.getId(), firstItemRequest.getId());
+        assertEquals(itemRequestDtoTest.getDescription(), firstItemRequest.getDescription());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getRequestId(), firstUser.getId());
+
+        verify(itemRequestRepository, times(1)).findById(anyLong());
+    }
+
+    @Test
+    void addItemsToRequest() {
+        when(itemRepository.findByRequestId(anyLong())).thenReturn(List.of(item));
+
+        ItemRequestDto itemRequestDtoTest = itemRequestService.addItemsToRequest(firstItemRequest);
+
+        assertEquals(itemRequestDtoTest.getItems().get(0).getId(), item.getId());
+        assertEquals(itemRequestDtoTest.getItems().get(0).getRequestId(), firstUser.getId());
+
+        verify(itemRepository, times(1)).findByRequestId(anyLong());
     }
 }
