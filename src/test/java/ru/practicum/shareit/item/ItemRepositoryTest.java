@@ -10,7 +10,7 @@ import ru.practicum.shareit.item.repository.ItemRepositoryImpl;
 import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
 import ru.practicum.shareit.utils.ShareItPageable;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @DataJpaTest
 public class ItemRepositoryTest {
     @Autowired
-    private UserRepository userRepository;
+    private UserRepositoryImpl userRepository;
 
     @Autowired
     private ItemRepositoryImpl itemRepository;

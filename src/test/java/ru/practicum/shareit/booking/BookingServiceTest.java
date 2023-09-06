@@ -14,12 +14,12 @@ import ru.practicum.shareit.booking.dto.ReceivedBookingDto;
 import ru.practicum.shareit.booking.dto.ReturnBookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
-import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.booking.service.BookingServiceImpl;
 import ru.practicum.shareit.exceptions.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepositoryImpl;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,9 +35,9 @@ public class BookingServiceTest {
     @Mock
     private ItemRepositoryImpl itemRepository;
     @Mock
-    private UserRepository userRepository;
+    private UserRepositoryImpl userRepository;
     @InjectMocks
-    private BookingService bookingService;
+    private BookingServiceImpl bookingService;
     private User user;
     private Item item;
     private Booking booking;

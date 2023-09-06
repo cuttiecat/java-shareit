@@ -8,7 +8,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import ru.practicum.shareit.request.model.Request;
 import ru.practicum.shareit.request.repository.RequestRepositoryImpl;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
 import ru.practicum.shareit.utils.ShareItPageable;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ public class RequestRepositoryTest {
     @Autowired
     private RequestRepositoryImpl requestRepository;
     @Autowired
-    private UserRepository userRepository;
+    private UserRepositoryImpl userRepository;
 
     @Test
     void shouldFindRequestsByRequestorId() {

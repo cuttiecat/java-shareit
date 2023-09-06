@@ -1,121 +1,98 @@
 package ru.practicum.shareit.user;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.practicum.shareit.exceptions.NotFoundException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
+import ru.practicum.shareit.item.repository.CommentRepositoryImpl;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.userUtils.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.repository.UserRepositoryImpl;
+import ru.practicum.shareit.user.service.UserServiceImpl;
+import ru.practicum.shareit.utils.ShareItPageable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
-    @InjectMocks
-    private UserService userService;
+public class UserServiceTest {
     @Mock
-    private UserRepository userRepository;
+    private UserRepositoryImpl userRepository;
+    @Mock
+    private CommentRepositoryImpl commentRepository;
+    @InjectMocks
+    private UserServiceImpl userService;
+    private UserDto receivedUser;
+    private User returnUser;
 
-    private final User user = new User(1L, "user@email.com", "User");
-    private final UserDto userDto = new UserDto(1L, "user@email.com","User");
-    private final User user2 = new User(2L, "user2@email.ru", "User2");
-    private final UserDto userDto2 = new UserDto(2L, "user2@email.ru", "User2");
-
-    @Test
-    void createUserTest() {
-        Mockito.when(userRepository.save(any()))
-                .thenReturn(user);
-
-        assertEquals(userService.create(userDto), userDto);
+    @BeforeEach
+    void setUp() {
+        receivedUser = new UserDto(null, "Пользователь 1", "email1@mail.ru", List.of());
+        returnUser = new User(1L, "Пользователь 1", "email1@mail.ru");
     }
 
     @Test
-    void findByIdWhenUserIsExistThenReturnedExpectedUser() {
-        Mockito.when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.of(user));
-
-        assertEquals(userService.findUserById(1L), userDto);
+    void shouldAddUser() {
+        when(userRepository.save(any())).thenReturn(returnUser);
+        UserDto testUser = userService.addUser(receivedUser);
+        assertNotNull(testUser);
+        assertEquals(1L, testUser.getId());
+        assertEquals("Пользователь 1", testUser.getName());
+        assertEquals("email1@mail.ru", testUser.getEmail());
+        verify(userRepository, times(1)).save(any());
     }
 
     @Test
-    void findByIdWhenUserIsNotExistThenReturnedNotFoundException() {
-        Mockito.when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        Exception e = assertThrows(NotFoundException.class, () -> userService.findUserById(1L));
-
-        assertEquals(e.getMessage(), String.format("Пользователь с id %d не найден", 1L));
+    void shouldUpdateUser() {
+        receivedUser.setId(1L);
+        receivedUser.setName("Новый пользователь 1");
+        returnUser.setName("Новый пользователь 1");
+        when(userRepository.save(any())).thenReturn(returnUser);
+        when(userRepository.findById(any())).thenReturn(Optional.of(returnUser));
+        UserDto testUser = userService.updateUser(1L, receivedUser);
+        assertNotNull(testUser);
+        assertEquals(1L, testUser.getId());
+        assertEquals("Новый пользователь 1", testUser.getName());
+        assertEquals("email1@mail.ru", testUser.getEmail());
+        verify(userRepository, times(1)).save(any());
     }
 
     @Test
-    void findAllUsersWhenUsersIsExistThenReturnedExpectedListUsers() {
-        Mockito.when(userRepository.findAll())
-                .thenReturn(List.of(user, user2));
-
-        List<UserDto> users = userService.findAllUsers();
-
-        assertEquals(users, List.of(userDto, userDto2));
+    void shouldDeleteUser() {
+        userService.deleteUser(1L);
+        verify(userRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void findAllUsersWhenUsersIsNotExistThenReturnedEmptyList() {
-        Mockito.when(userRepository.findAll())
-                .thenReturn(new ArrayList<>());
-
-        assertEquals(userService.findAllUsers(), new ArrayList<>());
+    void shouldGetUser() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(returnUser));
+        UserDto testUser = userService.getUser(1L);
+        assertNotNull(testUser);
+        assertEquals(1L, testUser.getId());
+        assertEquals("Пользователь 1", testUser.getName());
+        assertEquals("email1@mail.ru", testUser.getEmail());
+        verify(userRepository, times(1)).findById(anyLong());
     }
 
     @Test
-    void updateUserWhenUserIsExistThenReturnedExpectedUpdatedUser() {
-        Mockito.when(userRepository.findById(1L))
-                .thenReturn(Optional.of(user));
-
-        User updateUser = new User(1L, "updateUser@email.ru", "updateUser");
-        UserDto updateUserDto = new UserDto(1L, "updateUser@email.ru", "updateUser");
-
-        Mockito.when(userRepository.save(any()))
-                .thenReturn(updateUser);
-
-        assertEquals(userService.save(updateUserDto, 1L), updateUserDto);
+    void shouldGetUsers() {
+        User returnUser2 = new User(5L, "Пользователь 5", "email5@mail.ru");
+        User returnUser3 = new User(9L, "Пользователь 9", "email9@mail.ru");
+        when(userRepository.findAll(new ShareItPageable(0, 20, Sort.unsorted())))
+                .thenReturn(new PageImpl<>(List.of(returnUser,returnUser2, returnUser3)));
+        when(commentRepository.findAll()).thenReturn(List.of());
+        List<UserDto> userList = userService.getUsers(null, null);
+        assertEquals(3, userList.size());
+        assertEquals(1L, userList.get(0).getId());
+        assertEquals(9L, userList.get(2).getId());
+        assertEquals(5L, userList.get(1).getId());
+        verify(userRepository, times(1)).findAll(new ShareItPageable(0, 20, Sort.unsorted()));
     }
-
-    @Test
-    void updateUserWhenUserIsNotExistThenReturnedNotFoundException() {
-        Mockito.when(userRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        Exception e = assertThrows(NotFoundException.class, () -> userService.findUserById(3L));
-
-        assertEquals(e.getMessage(), String.format("Пользователь с id %d не найден", 3L));
-    }
-
-    @Test
-    void deleteUser() {
-        userService.delete(1L);
-
-        Mockito.verify(userRepository).deleteById(1L);
-    }
-
-    @Test
-    public void checkFindUserByIdThrowsNotFoundException() {
-        Mockito.when(userRepository.findById(anyLong()))
-                .thenThrow(new NotFoundException(String.format("Пользователь с id %d не найден", 100L)));
-
-        Exception e = assertThrows(NotFoundException.class,
-                () -> UserMapper.toUser(userService.checkFindUserById(100L)));
-        assertEquals(e.getMessage(), String.format("Пользователь с id %d не найден", 100L));
-    }
-
 }
