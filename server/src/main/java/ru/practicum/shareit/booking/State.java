@@ -21,7 +21,7 @@ public enum State {
     try {
         return State.valueOf(state);
     } catch (Exception e) {
-        throw new UnsupportedStatusException("Неизвестное состояние: " + state);
+        throw new UnsupportedStatusException("Unknown state: " + state);
     }
 
     }
