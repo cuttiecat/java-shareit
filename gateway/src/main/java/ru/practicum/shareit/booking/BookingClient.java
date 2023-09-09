@@ -19,7 +19,6 @@ public class BookingClient extends BaseClient {
 //    ApplicationContext context = new AnnotationConfigApplicationContext(SpringBootConfiguration.class);
 //
 //    WebClientConfig webClientConfig = context.getBean(WebClientConfig.class);
-    
     @Autowired
     public BookingClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
