@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -19,7 +18,6 @@ import static ru.practicum.shareit.util.Constant.HEADER_USER;
 @RequestMapping(path = "/items")
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class ItemController {
 
     private final ItemClient itemClient;
