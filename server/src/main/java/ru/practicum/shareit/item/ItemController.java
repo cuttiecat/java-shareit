@@ -14,7 +14,6 @@ import static ru.practicum.shareit.util.Constant.HEADER_USER;
 
 
 @Slf4j
-@Validated
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/items")
