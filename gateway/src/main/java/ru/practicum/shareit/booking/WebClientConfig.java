@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.client.BaseClient;
 
-import java.util.Map;
 
 @Configuration
 public class WebClientConfig {
@@ -16,7 +15,7 @@ public class WebClientConfig {
     private String serviceUrl;
 
     @Bean
-    public  BaseClient eventClient(RestTemplateBuilder builder){
+    public  BaseClient eventClient(RestTemplateBuilder builder) {
         var restTemplate = builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(serviceUrl))
                 .build();
