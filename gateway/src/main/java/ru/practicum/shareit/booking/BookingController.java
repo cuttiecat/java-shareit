@@ -58,9 +58,9 @@ public class BookingController {
 														   @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new UnsupportedStatusException("Неизвестное состояние\n: " + stateParam));
+				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: " + stateParam));
 
-		log.info("Получить список бронирования по id бронирования {}", userId);
+		log.info("Получить список бронирования по идентификатору бронирования {}", userId);
 		return bookingClient.getAllBookingsByBookerId(userId, state, from, size);
 	}
 
@@ -71,7 +71,7 @@ public class BookingController {
 														   			 @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
 
 		BookingState state = BookingState.from(stateParam)
-				.orElseThrow(() -> new UnsupportedStatusException("Неизвестное состояние\n: " + stateParam));
+				.orElseThrow(() -> new UnsupportedStatusException("Unknown state: " + stateParam));
 
 		log.info("Получить все бронирования для всех товаров по идентификатору владельца {}.", userId);
 		return bookingClient.getAllBookingsForAllItemsByOwnerId(userId, state, from, size);

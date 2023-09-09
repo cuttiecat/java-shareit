@@ -63,7 +63,7 @@ public class ItemServiceImpl implements ItemService {
         item.setId(itemId);
 
         if (!itemRepository.findByOwnerId(userId).contains(item)) {
-            throw new NotFoundException(Item.class, "элемент не был найден с идентификатором пользователя " + userId);
+            throw new NotFoundException(Item.class, "элемент идентификатора пользователя не был найден " + userId);
         }
 
         Item newItem = itemRepository.findById(item.getId()).get();

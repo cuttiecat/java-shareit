@@ -43,16 +43,16 @@ public class BookingServiceImpl implements BookingService {
         booking.setBooker(user);
 
         if (item.getOwner().equals(user)) {
-            throw new NotFoundException(User.class, "Owner " + userId + " can't book his item");
+            throw new NotFoundException(User.class, "Владелец " + userId + " не может забронировать свою вещь");
         }
         if (!item.getAvailable()) {
-            throw new ValidationException("Item " + item.getId() + " is booked");
+            throw new ValidationException("Вещь " + item.getId() + " забронирована");
         }
         if (booking.getStart().isAfter(booking.getEnd())) {
-            throw new ValidationException("Start cannot be later than end");
+            throw new ValidationException("Старт не может быть позже конца");
         }
         if (booking.getStart().isEqual(booking.getEnd())) {
-            throw new ValidationException("Start cannot be equal than end");
+            throw new ValidationException("Старт не может быть равен концу");
         }
 
         bookingRepository.save(booking);
@@ -68,12 +68,12 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId).get();
 
         if (booking.getItem().getOwner().getId() != userId) {
-            throw new NotFoundException(User.class, "Only owner " + userId + " items can change booking status");
+            throw new NotFoundException(User.class, "Только владелец " + userId + " предмета может менять статус");
         }
 
         if (approved) {
             if (booking.getStatus().equals(Status.APPROVED)) {
-                throw new ValidationException("Incorrect status update request");
+                throw new ValidationException("Некорректный статус на обновление запроса");
             }
             booking.setStatus(Status.APPROVED);
         } else {
@@ -96,7 +96,7 @@ public class BookingServiceImpl implements BookingService {
         if (booking.getBooker().getId() == userId || booking.getItem().getOwner().getId() == userId) {
             return BookingMapper.returnBookingDto(booking);
         } else {
-            throw new NotFoundException(User.class, "To get information about the reservation, the car of the reservation or the owner {} " + userId + "of the item can");
+            throw new NotFoundException(User.class, "Получить информацию о резервации может автомобиль резервации или владелец {}  " + userId + " предмета");
         }
     }
 
@@ -143,7 +143,7 @@ public class BookingServiceImpl implements BookingService {
         PageRequest pageRequest = PageRequest.of(from / size, size);
 
         if (itemRepository.findByOwnerId(userId).isEmpty()) {
-            throw new ValidationException("User does not have items to booking");
+            throw new ValidationException("У пользователя нет товаров для бронирования");
         }
         Page<Booking> bookings = null;
 

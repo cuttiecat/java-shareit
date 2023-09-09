@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
             List<User> findEmail = userRepository.findByEmail(user.getEmail());
 
             if (!findEmail.isEmpty() && findEmail.get(0).getId() != userId) {
-                throw new EmailExistException("уже есть пользователь с данной электронной почтой " + user.getEmail());
+                throw new EmailExistException("Уже есть пользователь с данной электронной почтой " + user.getEmail());
             }
             newUser.setEmail(user.getEmail());
         }
